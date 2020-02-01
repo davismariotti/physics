@@ -18,16 +18,24 @@ public abstract class RigidBody {
     private Vector velocity;
     private List<Vector> forces;
     private double mass;
+    private boolean isStatic;
 
     public abstract void draw(Graphics2D graphics);
 
-    public abstract void update(double epsilon);
+    public void update(double epsilon) {
+        if (!isStatic) {
+            Vector force = this.getResultantForce();
+            Vector acceleration = new Vector(force.getX() / this.getMass(), force.getY() / this.getMass());
+            setPosition(getPosition().add(new Vector(getVelocity().getX() * epsilon + .5 * acceleration.getX() * Math.pow(epsilon, 2), getVelocity().getY() * epsilon + .5 * acceleration.getY() * Math.pow(epsilon, 2))));
+            setVelocity(getVelocity().add(new Vector(acceleration.getX() * epsilon, acceleration.getY() * epsilon)));
+        }
+    }
 
     public void flipAboutAxis(Axis axis) {
         if (axis == X) {
-            velocity = velocity.multiply(1, -1);
+            setVelocity(new Vector(getVelocity().getX(), -.9 * getVelocity().getY()));
         } else {
-            velocity = velocity.multiply(-1, 1);
+            setVelocity(new Vector(-.9 * getVelocity().getX(), getVelocity().getY()));
         }
     }
 

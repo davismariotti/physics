@@ -21,6 +21,7 @@ public class Game extends JFrame {
 
     public static Vector GRAVITY = new Vector(0, -9.8);
     public static double SCALE = 10.0;
+    public static double GAME_SPEED = 3.0;
 
     boolean isRunning = true;
     int fps = 30;
@@ -79,7 +80,7 @@ public class Game extends JFrame {
                         ray.addAngle(-3);
                     }
                     if (pressedCode == KeyEvent.VK_ENTER) {
-                        Ball ball = new Ball(ray.getPosition(), ray.getUnitVector().multiply(30, 30), Collections.singletonList(GRAVITY));
+                        Ball ball = new Ball(ray.getPosition(), ray.getUnitVector().multiply(40), Collections.singletonList(GRAVITY));
                         balls.listIterator().add(ball);
                     }
                     if (pressedCode == KeyEvent.VK_Q) {
@@ -125,7 +126,7 @@ public class Game extends JFrame {
     void update() {
         for (ListIterator<Ball> it = balls.listIterator(); it.hasNext(); ) {
             Ball ball = it.next();
-            ball.update(1.0 / fps);
+            ball.update(1.0 / fps * GAME_SPEED);
 
             if (ball.getPosition().getX() > windowWidth / SCALE || ball.getPosition().getX() < 0) {
                 ball.flipAboutAxis(Axis.Y);
