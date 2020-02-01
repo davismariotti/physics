@@ -1,39 +1,31 @@
 package com.davismariotti.physics.kinematics;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
-@Data
+@Value
 @AllArgsConstructor
-@NoArgsConstructor
 public class Vector {
 
-    public static Vector ZERO = new Vector();
+    public static Vector ZERO = new Vector(0, 0);
 
-    double xComponent = 0;
-    double yComponent = 0;
+    double x;
+    double y;
 
     public Vector add(Vector other) {
-        return new Vector(xComponent + other.getXComponent(), yComponent + other.getYComponent());
+        return new Vector(x + other.getX(), y + other.getY());
     }
 
     public Vector multiply(double x, double y) {
-        return new Vector(this.xComponent * x, this.yComponent * y);
-    }
-
-    public Position applyToLocation(Position old) {
-        Position position = new Position();
-        position.setX(old.getX() + (int) xComponent);
-        position.setY(old.getY() + (int) yComponent);
-
-        return position;
+        return new Vector(this.x * x, this.y * y);
     }
 
     public Vector getUnitVector() {
-        Vector unitVector = new Vector();
-        unitVector.setXComponent(xComponent / Math.sqrt(Math.pow(xComponent, 2) + Math.pow(yComponent, 2)));
-        unitVector.setYComponent(yComponent / Math.sqrt(Math.pow(xComponent, 2) + Math.pow(yComponent, 2)));
-        return unitVector;
+        double denominator = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+        return new Vector(x / denominator, y / denominator);
+    }
+
+    public double getMagnitude() {
+        return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     }
 }

@@ -1,42 +1,31 @@
 package com.davismariotti.physics.sprites;
 
-import com.davismariotti.physics.kinematics.Position;
-import com.davismariotti.physics.kinematics.DeltaV;
-import com.davismariotti.physics.kinematics.Direction;
+import com.davismariotti.physics.Game;
 import com.davismariotti.physics.kinematics.Vector;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.util.List;
 
-public class Ball extends Sprite {
+public class Ball extends RigidBody {
 
-    public Ball(Position position, Vector vector, DeltaV deltaV) {
-        super(position, vector, deltaV);
+    public Ball(Vector position, Vector vector, List<Vector> forces) {
+        super(position, vector, forces, 1);
     }
 
     @Override
     public void draw(Graphics2D graphics) {
         graphics.setColor(Color.WHITE);
-        graphics.fillOval(this.getPosition().getX(), this.getPosition().getY(), 3, 3);
+        Ellipse2D ellipse2D = new Ellipse2D.Double(this.getPosition().getX() * Game.SCALE, this.getPosition().getY() * Game.SCALE, 10, 10);
+
+        graphics.fill(ellipse2D);
     }
 
     @Override
-    public void update() {
-        // Update the vector with the current deltaV
-        this.setVector(this.getDeltaV().applyToVector(this.getVector()));
-        // Update the location with the current vector
-        this.setPosition(this.getVector().applyToLocation(this.getPosition()));
-    }
-
-    public void move(Direction direction) {
-        switch (direction) {
-            case RIGHT:
-                this.setVector(this.getVector().add(new Vector(1, 0)));
-                break;
-            case LEFT:
-                this.setVector(this.getVector().add(new Vector(-1, 0)));
-                break;
-            default:
-                break;
-        }
+    public void update(double epsilon) {
+        Vector force = this.getResultantForce();
+        Vector acceleration = new Vector(force.getX() / this.getMass(), force.getY() / this.getMass());
+        setVelocity(getVelocity().add(new Vector(acceleration.getX() * epsilon, acceleration.getY() * epsilon)));
+        setPosition(getPosition().add(new Vector(getVelocity().getX() * epsilon, getVelocity().getY() * epsilon)));
     }
 }

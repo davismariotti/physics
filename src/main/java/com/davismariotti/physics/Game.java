@@ -1,23 +1,27 @@
 package com.davismariotti.physics;
 
-import com.davismariotti.physics.kinematics.DeltaV;
-import com.davismariotti.physics.kinematics.Position;
+import com.davismariotti.physics.kinematics.Axis;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.sprites.Ball;
 import com.davismariotti.physics.sprites.Ray;
 
+import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import javax.swing.JFrame;
+import javax.swing.*;
 
 /**
  * Main class for the game
  */
 public class Game extends JFrame {
+
+    public static Vector GRAVITY = new Vector(0, -9.8);
+    public static double SCALE = 10.0;
+
     boolean isRunning = true;
     int fps = 30;
     int windowWidth = 1200;
@@ -27,7 +31,7 @@ public class Game extends JFrame {
     Insets insets;
 
     List<Ball> balls = new ArrayList<>();
-    Ray ray = new Ray(new Position(0, windowHeight), 30, 45, 50);
+    Ray ray = new Ray(Vector.ZERO, 30, 45, 50);
 
     // Set of currently pressed keys
     private final Set<Integer> pressed = new HashSet<>();
@@ -75,7 +79,7 @@ public class Game extends JFrame {
                         ray.addAngle(-3);
                     }
                     if (pressedCode == KeyEvent.VK_ENTER) {
-                        Ball ball = new Ball(new Position(0, windowHeight), ray.getUnitVector().multiply(30, 30), DeltaV.GRAVITY);
+                        Ball ball = new Ball(ray.getPosition(), ray.getUnitVector().multiply(30, 30), Collections.singletonList(GRAVITY));
                         balls.listIterator().add(ball);
                     }
                     if (pressedCode == KeyEvent.VK_Q) {
@@ -93,7 +97,7 @@ public class Game extends JFrame {
             if (time > 0) {
                 try {
                     Thread.sleep(time);
-                } catch (Exception e) {
+                } catch (Exception ignored) {
                 }
             }
         }
@@ -121,10 +125,21 @@ public class Game extends JFrame {
     void update() {
         for (ListIterator<Ball> it = balls.listIterator(); it.hasNext(); ) {
             Ball ball = it.next();
-            ball.update();
-            if (ball.getPosition().isOutOfFrame(windowWidth, windowHeight)) {
-                it.remove();
+            ball.update(1.0 / fps);
+
+            if (ball.getPosition().getX() > windowWidth / SCALE || ball.getPosition().getX() < 0) {
+                ball.flipAboutAxis(Axis.Y);
             }
+            if (ball.getPosition().getY() > windowHeight / SCALE || ball.getPosition().getY() < 0) {
+                ball.flipAboutAxis(Axis.X);
+            }
+
+//            if (ball.getPosition().isOutOfFrame(windowWidth, windowHeight, 20)) {
+//                it.remove();
+//            }
+        }
+        if (balls.size() > 0) {
+            System.out.println(balls.get(0).getTotalEnergy());
         }
     }
 
@@ -133,6 +148,9 @@ public class Game extends JFrame {
         Graphics g = getGraphics();
 
         Graphics2D graphics = (Graphics2D) backBuffer.getGraphics();
+        AffineTransform at = graphics.getTransform();
+        graphics.scale(1, -1);
+        graphics.translate(0, -windowHeight);
 
         graphics.setColor(Color.BLACK);
         graphics.fillRect(0, 0, windowWidth, windowHeight);
@@ -143,5 +161,6 @@ public class Game extends JFrame {
         ray.draw(graphics);
 
         g.drawImage(backBuffer, insets.left, insets.top, this);
+        graphics.setTransform(at);
     }
 }

@@ -1,24 +1,23 @@
 package com.davismariotti.physics.sprites;
 
-import com.davismariotti.physics.kinematics.Position;
-import com.davismariotti.physics.kinematics.DeltaV;
 import com.davismariotti.physics.kinematics.Vector;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.awt.*;
+import java.util.Collections;
 
 @Getter
 @Setter
-public class Ray extends Sprite {
+public class Ray extends RigidBody {
     // The position is the point the ray is centered at
 
     private int length;
     private double theta;
     private int distance;
 
-    public Ray(Position position, int length, double theta, int distance) {
-        super(position, Vector.ZERO, DeltaV.ZERO);
+    public Ray(Vector position, int length, double theta, int distance) {
+        super(position, Vector.ZERO, Collections.emptyList(), 1);
         this.length = length;
         this.theta = degreesToRadians(theta);
         this.distance = distance;
@@ -26,27 +25,27 @@ public class Ray extends Sprite {
 
     @Override
     public void draw(Graphics2D graphics) {
-        Position start = getStartPosition();
-        Position end = getEndPosition();
+        Vector start = getStartPosition();
+        Vector end = getEndPosition();
         graphics.setColor(Color.WHITE);
         graphics.setStroke(new BasicStroke(3));
-        graphics.drawLine(start.getX(), start.getY(), end.getX(), end.getY());
+        graphics.drawLine((int) start.getX(), (int) start.getY(), (int) end.getX(), (int) end.getY());
     }
 
     @Override
-    public void update() {
+    public void update(double epsilon) {
     }
 
-    private Position getStartPosition() {
+    private Vector getStartPosition() {
         double x = distance * Math.cos(theta);
-        double y = -distance * Math.sin(theta);
-        return new Position((int) Math.round(x), (int) Math.round(y)).add(this.getPosition());
+        double y = distance * Math.sin(theta);
+        return new Vector((int) Math.round(x), (int) Math.round(y)).add(this.getPosition());
     }
 
-    private Position getEndPosition() {
+    private Vector getEndPosition() {
         double x = (distance + length) * Math.cos(theta);
-        double y = -((distance + length) * Math.sin(theta));
-        return new Position((int) Math.round(x), (int) Math.round(y)).add(this.getPosition());
+        double y = (distance + length) * Math.sin(theta);
+        return new Vector((int) Math.round(x), (int) Math.round(y)).add(this.getPosition());
     }
 
     public void addAngle(int angle) {
