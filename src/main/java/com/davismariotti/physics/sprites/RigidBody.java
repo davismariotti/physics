@@ -26,7 +26,7 @@ public abstract class RigidBody {
         if (!isStatic) {
             Vector force = this.getResultantForce();
             Vector acceleration = new Vector(force.getX() / this.getMass(), force.getY() / this.getMass());
-            setPosition(getPosition().add(new Vector(getVelocity().getX() * epsilon + .5 * acceleration.getX() * Math.pow(epsilon, 2), getVelocity().getY() * epsilon + .5 * acceleration.getY() * Math.pow(epsilon, 2))));
+            setPosition(getPosition().add(new Vector(getVelocity().getX() * epsilon + .5 * acceleration.getX() * epsilon * epsilon, getVelocity().getY() * epsilon + .5 * acceleration.getY() * epsilon * epsilon)));
             setVelocity(getVelocity().add(new Vector(acceleration.getX() * epsilon, acceleration.getY() * epsilon)));
         }
     }
@@ -40,7 +40,8 @@ public abstract class RigidBody {
     }
 
     public double getKeneticEnergy() {
-        return Math.abs(.5 * mass * Math.pow(velocity.getMagnitude(), 2));
+        double magnitude = velocity.getMagnitude();
+        return Math.abs(.5 * mass * magnitude * magnitude);
     }
 
     public double getPotentialEnergy() {

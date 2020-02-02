@@ -1,8 +1,13 @@
 package com.davismariotti.physics.kinematics;
 
-import lombok.Value;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-@Value
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@Getter
 public class Vector {
 
     public static Vector ZERO = new Vector(0, 0);
@@ -19,11 +24,11 @@ public class Vector {
     }
 
     public Vector getUnitVector() {
-        double denominator = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+        double denominator = Math.sqrt(x * x + y * y);
         return new Vector(x / denominator, y / denominator);
     }
 
     public double getMagnitude() {
-        return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+        return Math.sqrt(x * x + y * y);
     }
 }

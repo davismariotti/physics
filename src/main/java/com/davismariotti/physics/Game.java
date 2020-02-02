@@ -1,6 +1,7 @@
 package com.davismariotti.physics;
 
 import com.davismariotti.physics.kinematics.Axis;
+import com.davismariotti.physics.kinematics.TensionForce;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.sprites.Ball;
 import com.davismariotti.physics.sprites.Ray;
@@ -38,6 +39,13 @@ public class Game extends JFrame {
     private final Set<Integer> pressed = new HashSet<>();
 
     public static void main(String[] args) {
+//        Ball ball = new Ball(new Vector(50, 50), Vector.ZERO, Collections.singletonList(GRAVITY));
+//        Vector origin = new Vector(40, 20);
+//        TensionForce force = new TensionForce(origin, ball);
+//        ball.setForces(Collections.singletonList(force));
+//        double degrees = Math.atan2(force.getVectorBetweenPoints().getY(), force.getVectorBetweenPoints().getX()) / Math.PI * 180 + 90;
+//        System.out.println(degrees);
+
         Game game = new Game();
         game.run();
         System.exit(0);
