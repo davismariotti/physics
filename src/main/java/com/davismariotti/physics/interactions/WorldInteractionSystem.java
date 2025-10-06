@@ -1,5 +1,6 @@
 package com.davismariotti.physics.interactions;
 
+import com.davismariotti.physics.rendering.Camera;
 import lombok.Getter;
 
 import java.awt.*;
@@ -52,9 +53,9 @@ public class WorldInteractionSystem {
     /**
      * Draw all interactions
      */
-    public void draw(Graphics2D graphics) {
+    public void draw(Graphics2D graphics, Camera camera) {
         for (WorldInteraction interaction : interactions) {
-            interaction.draw(graphics);
+            interaction.draw(graphics, camera);
         }
     }
 }

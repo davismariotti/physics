@@ -2,6 +2,7 @@ package com.davismariotti.physics.interactions;
 
 import com.davismariotti.physics.components.Ray;
 import com.davismariotti.physics.kinematics.Vector;
+import com.davismariotti.physics.rendering.Camera;
 import com.davismariotti.physics.sprites.Ball;
 import lombok.Getter;
 
@@ -40,8 +41,8 @@ public class AimIndicator implements WorldInteraction {
     }
 
     @Override
-    public void draw(Graphics2D graphics) {
-        ray.draw(graphics);
+    public void draw(Graphics2D graphics, Camera camera) {
+        ray.draw(graphics, camera);
     }
 
     private void spawnBall(InputContext context) {

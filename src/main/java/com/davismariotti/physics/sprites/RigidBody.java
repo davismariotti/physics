@@ -2,6 +2,7 @@ package com.davismariotti.physics.sprites;
 
 import com.davismariotti.physics.kinematics.Axis;
 import com.davismariotti.physics.kinematics.Vector;
+import com.davismariotti.physics.rendering.Camera;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -25,7 +26,7 @@ public abstract class RigidBody {
     // Temporary forces that are cleared each frame (for global forces like drag)
     private transient List<Vector> temporaryForces;
 
-    public abstract void draw(Graphics2D graphics);
+    public abstract void draw(Graphics2D graphics, Camera camera);
 
     public void update(double epsilon) {
         if (!isStatic) {

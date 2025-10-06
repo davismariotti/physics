@@ -1,6 +1,6 @@
 package com.davismariotti.physics.rendering;
 
-import com.davismariotti.physics.Game;
+import com.davismariotti.physics.kinematics.Vector;
 
 import java.awt.*;
 
@@ -10,16 +10,18 @@ import java.awt.*;
 public class GroundRenderer implements RenderComponent {
     private final int windowWidth;
     private final double groundY; // ground level in world coordinates
+    private final Camera camera;
 
-    public GroundRenderer(int windowWidth, double groundY) {
+    public GroundRenderer(int windowWidth, double groundY, Camera camera) {
         this.windowWidth = windowWidth;
         this.groundY = groundY;
+        this.camera = camera;
     }
 
     @Override
     public void render(Graphics2D graphics) {
         // Convert ground Y to screen coordinates
-        int screenY = (int) (groundY * Game.SCALE);
+        int screenY = camera.worldToScreen(new Vector(0, groundY)).y();
 
         // Draw ground as a thick line
         graphics.setColor(new Color(100, 200, 100)); // Green grass color

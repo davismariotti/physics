@@ -1,5 +1,7 @@
 package com.davismariotti.physics.interactions;
 
+import com.davismariotti.physics.rendering.Camera;
+
 import java.awt.*;
 
 /**
@@ -21,6 +23,7 @@ public interface WorldInteraction {
     /**
      * Draw this interaction in world space
      * @param graphics the graphics context
+     * @param camera the camera for converting world to screen coordinates
      */
-    void draw(Graphics2D graphics);
+    void draw(Graphics2D graphics, Camera camera);
 }

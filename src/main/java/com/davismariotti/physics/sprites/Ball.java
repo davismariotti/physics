@@ -1,7 +1,7 @@
 package com.davismariotti.physics.sprites;
 
-import com.davismariotti.physics.Game;
 import com.davismariotti.physics.kinematics.Vector;
+import com.davismariotti.physics.rendering.Camera;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
@@ -16,22 +16,21 @@ public class Ball extends RigidBody {
     }
 
     @Override
-    public void draw(Graphics2D graphics) {
+    public void draw(Graphics2D graphics, Camera camera) {
         // Convert world coordinates to screen coordinates
-        double screenX = this.getPosition().getX() * Game.SCALE;
-        double screenY = this.getPosition().getY() * Game.SCALE;
-        double screenRadius = RADIUS * Game.SCALE;
+        Camera.ScreenPointDouble screenPos = camera.worldToScreenDouble(this.getPosition());
+        double screenRadius = camera.worldToScreenDistance(RADIUS);
 
         // Center the circle on the position
-        double x = screenX - screenRadius;
-        double y = screenY - screenRadius;
+        double x = screenPos.x - screenRadius;
+        double y = screenPos.y - screenRadius;
         double diameter = screenRadius * 2;
 
         // Draw ball with gradient for 3D effect
         Ellipse2D ellipse = new Ellipse2D.Double(x, y, diameter, diameter);
 
         // Create radial gradient for shading
-        Point2D center = new Point2D.Double(screenX - screenRadius * 0.3, screenY - screenRadius * 0.3);
+        Point2D center = new Point2D.Double(screenPos.x - screenRadius * 0.3, screenPos.y - screenRadius * 0.3);
         float radius = (float) screenRadius;
         float[] dist = {0.0f, 1.0f};
         Color[] colors = {new Color(255, 100, 100), new Color(200, 50, 50)};

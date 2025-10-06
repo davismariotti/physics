@@ -1,5 +1,6 @@
 package com.davismariotti.physics.rendering;
 
+import com.davismariotti.physics.Game;
 import com.davismariotti.physics.core.PhysicsSimulator;
 import com.davismariotti.physics.interactions.WorldInteractionSystem;
 
@@ -17,6 +18,7 @@ public class Renderer {
     private final BufferedImage backBuffer;
     private final List<RenderComponent> components;
     private final HUDRenderer hudRenderer;
+    private final Camera camera;
 
     public Renderer(int windowWidth, int windowHeight, PhysicsSimulator simulator, WorldInteractionSystem interactionSystem) {
         this.windowWidth = windowWidth;
@@ -24,9 +26,12 @@ public class Renderer {
         this.backBuffer = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_RGB);
         this.components = new ArrayList<>();
 
+        // Create camera for world/screen coordinate conversion
+        this.camera = new Camera(Game.SCALE, windowHeight);
+
         // Create and add render components
-        WorldRenderer worldRenderer = new WorldRenderer(simulator, interactionSystem, windowHeight);
-        GroundRenderer groundRenderer = new GroundRenderer(windowWidth, 0.0); // Ground at y=0
+        WorldRenderer worldRenderer = new WorldRenderer(simulator, interactionSystem, camera);
+        GroundRenderer groundRenderer = new GroundRenderer(windowWidth, 0.0, camera); // Ground at y=0
         this.hudRenderer = new HUDRenderer(simulator.getConfig(), windowWidth, windowHeight);
 
         components.add(worldRenderer);

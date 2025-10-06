@@ -1,7 +1,7 @@
 package com.davismariotti.physics.components;
 
-import com.davismariotti.physics.Game;
 import com.davismariotti.physics.kinematics.Vector;
+import com.davismariotti.physics.rendering.Camera;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -66,40 +66,37 @@ public class Ray {
      * Draw the ray as a launcher
      * Converts world coordinates to screen coordinates for proper display
      */
-    public void draw(Graphics2D graphics) {
+    public void draw(Graphics2D graphics, Camera camera) {
         Vector start = getStartPosition();
         Vector end = getEndPosition();
 
         // Convert world coordinates to screen coordinates
-        int screenPosX = (int) (position.getX() * Game.SCALE);
-        int screenPosY = (int) (position.getY() * Game.SCALE);
-        int screenStartX = (int) (start.getX() * Game.SCALE);
-        int screenStartY = (int) (start.getY() * Game.SCALE);
-        int screenEndX = (int) (end.getX() * Game.SCALE);
-        int screenEndY = (int) (end.getY() * Game.SCALE);
+        Camera.ScreenPoint screenPos = camera.worldToScreen(position);
+        Camera.ScreenPoint screenStart = camera.worldToScreen(start);
+        Camera.ScreenPoint screenEnd = camera.worldToScreen(end);
 
         // Draw launcher base (pivot point)
         graphics.setColor(new Color(100, 100, 100)); // Dark gray
-        graphics.fillOval(screenPosX - 3, screenPosY - 3, 6, 6);
+        graphics.fillOval(screenPos.x() - 3, screenPos.y() - 3, 6, 6);
 
         // Draw launcher barrel with outline
         graphics.setColor(new Color(180, 180, 180)); // Light gray barrel
         graphics.setStroke(new BasicStroke(6, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        graphics.drawLine(screenStartX, screenStartY, screenEndX, screenEndY);
+        graphics.drawLine(screenStart.x(), screenStart.y(), screenEnd.x(), screenEnd.y());
 
         // Draw barrel outline
         graphics.setColor(new Color(80, 80, 80)); // Darker outline
         graphics.setStroke(new BasicStroke(7, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        graphics.drawLine(screenStartX, screenStartY, screenEndX, screenEndY);
+        graphics.drawLine(screenStart.x(), screenStart.y(), screenEnd.x(), screenEnd.y());
 
         // Redraw barrel on top
         graphics.setColor(new Color(180, 180, 180));
         graphics.setStroke(new BasicStroke(6, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        graphics.drawLine(screenStartX, screenStartY, screenEndX, screenEndY);
+        graphics.drawLine(screenStart.x(), screenStart.y(), screenEnd.x(), screenEnd.y());
 
         // Draw directional indicator at the end
         graphics.setColor(new Color(255, 150, 0)); // Orange tip
-        graphics.fillOval(screenEndX - 4, screenEndY - 4, 8, 8);
+        graphics.fillOval(screenEnd.x() - 4, screenEnd.y() - 4, 8, 8);
     }
 
     private static double degreesToRadians(double degrees) {
