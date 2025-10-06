@@ -1,81 +1,92 @@
 package com.davismariotti.physics;
 
-import com.davismariotti.physics.kinematics.Axis;
-import com.davismariotti.physics.kinematics.TensionForce;
+import com.davismariotti.physics.constraints.BoundaryConstraint;
+import com.davismariotti.physics.core.PhysicsConfig;
+import com.davismariotti.physics.core.PhysicsSimulator;
+import com.davismariotti.physics.input.InputHandler;
 import com.davismariotti.physics.kinematics.Vector;
-import com.davismariotti.physics.sprites.Ball;
+import com.davismariotti.physics.rendering.Renderer;
 import com.davismariotti.physics.sprites.Ray;
 
-import java.awt.geom.AffineTransform;
-import java.util.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.image.BufferedImage;
-import java.util.List;
 import javax.swing.*;
 
 /**
- * Main class for the game
+ * Main orchestrator for the physics simulation
  */
 public class Game extends JFrame {
 
-    public static Vector GRAVITY = new Vector(0, -9.8);
-    public static double SCALE = 10.0;
-    public static double GAME_SPEED = 3.0;
+    // Legacy static fields for backward compatibility
+    public static Vector GRAVITY;
+    public static double SCALE;
+    public static double GAME_SPEED;
 
-    double coefficientOfRestitution = 0.9;
-    double dragCoefficient = 0.0;
-    double actualFps = 0.0;
+    private final PhysicsSimulator simulator;
+    private final InputHandler inputHandler;
+    private final Renderer renderer;
+    private final Ray ray;
 
-    boolean isRunning = true;
-    int fps = 30;
-    int windowWidth = 1200;
-    int windowHeight = 800;
-
-    BufferedImage backBuffer;
-    Insets insets;
-
-    List<Ball> balls = new ArrayList<>();
-    Ray ray = new Ray(Vector.ZERO, 30, 45, 50);
-
-    // Set of currently pressed keys
-    private final Set<Integer> pressed = new HashSet<>();
+    private boolean isRunning = true;
+    private final int fps = 30;
+    private final int windowWidth = 1200;
+    private final int windowHeight = 800;
 
     public static void main(String[] args) {
-//        Ball ball = new Ball(new Vector(50, 50), Vector.ZERO, Collections.singletonList(GRAVITY));
-//        Vector origin = new Vector(40, 20);
-//        TensionForce force = new TensionForce(origin, ball);
-//        ball.setForces(Collections.singletonList(force));
-//        double degrees = Math.atan2(force.getVectorBetweenPoints().getY(), force.getVectorBetweenPoints().getX()) / Math.PI * 180 + 90;
-//        System.out.println(degrees);
-
         Game game = new Game();
         game.run();
         System.exit(0);
     }
 
     public Game() {
-        addKeyListener(new KeyListener() {
+        // Initialize physics configuration
+        PhysicsConfig config = new PhysicsConfig();
 
+        // Set static fields for backward compatibility
+        GRAVITY = config.getGravity();
+        SCALE = config.getScale();
+        GAME_SPEED = config.getGameSpeed();
+
+        // Create ray (aim indicator)
+        ray = new Ray(Vector.ZERO, 30, 45, 50);
+
+        // Create physics simulator
+        simulator = new PhysicsSimulator(config);
+
+        // Add boundary constraint
+        BoundaryConstraint boundaryConstraint = new BoundaryConstraint(
+                0, windowWidth / SCALE,
+                0, windowHeight / SCALE
+        );
+        simulator.addConstraint(boundaryConstraint);
+
+        // Create input handler
+        inputHandler = new InputHandler(simulator, ray);
+
+        // Create renderer
+        renderer = new Renderer(windowWidth, windowHeight, simulator, ray);
+
+        // Set up keyboard listener
+        addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
             }
 
             @Override
-            public synchronized void keyPressed(KeyEvent e) {
-                pressed.add(e.getKeyCode());
+            public void keyPressed(KeyEvent e) {
+                inputHandler.keyPressed(e.getKeyCode());
             }
 
             @Override
-            public synchronized void keyReleased(KeyEvent e) {
-                pressed.remove(e.getKeyCode());
+            public void keyReleased(KeyEvent e) {
+                inputHandler.keyReleased(e.getKeyCode());
             }
         });
     }
 
     /**
-     * This method starts the game and runs it in a loop
+     * Main game loop
      */
     public void run() {
         initialize();
@@ -83,44 +94,16 @@ public class Game extends JFrame {
         while (isRunning) {
             long frameStart = System.currentTimeMillis();
 
-            if (pressed.size() >= 1) {
-                for (int pressedCode : pressed) {
-                    if (pressedCode == KeyEvent.VK_LEFT) {
-                        ray.addAngle(3);
-                    }
-                    if (pressedCode == KeyEvent.VK_RIGHT) {
-                        ray.addAngle(-3);
-                    }
-                    if (pressedCode == KeyEvent.VK_ENTER) {
-                        Ball ball = new Ball(ray.getPosition(), ray.getUnitVector().multiply(40), Collections.singletonList(GRAVITY), coefficientOfRestitution, dragCoefficient);
-                        balls.listIterator().add(ball);
-                    }
-                    if (pressedCode == KeyEvent.VK_UP) {
-                        dragCoefficient = Math.min(1.0, dragCoefficient + 0.001);
-                        updateAllBallCoefficients();
-                    }
-                    if (pressedCode == KeyEvent.VK_DOWN) {
-                        dragCoefficient = Math.max(0.0, dragCoefficient - 0.001);
-                        updateAllBallCoefficients();
-                    }
-                    if (pressedCode == KeyEvent.VK_R) {
-                        coefficientOfRestitution = Math.min(1.0, coefficientOfRestitution + 0.05);
-                        updateAllBallCoefficients();
-                    }
-                    if (pressedCode == KeyEvent.VK_F) {
-                        coefficientOfRestitution = Math.max(0.0, coefficientOfRestitution - 0.05);
-                        updateAllBallCoefficients();
-                    }
-                    if (pressedCode == KeyEvent.VK_Q) {
-                        System.exit(0);
-                    }
-                }
-            }
+            // Process input
+            inputHandler.processInput();
 
-            update();
-            draw();
+            // Update physics
+            simulator.update(1.0 / fps * GAME_SPEED);
 
-            //  delay for each frame  -   time it took for one frame
+            // Render
+            renderer.render(getGraphics(), getInsets());
+
+            // Frame timing
             long frameTime = System.currentTimeMillis() - frameStart;
             long sleepTime = (1000 / fps) - frameTime;
 
@@ -131,95 +114,27 @@ public class Game extends JFrame {
                 }
             }
 
-            // Calculate actual FPS based on total frame time (including sleep)
+            // Calculate and update FPS
             long totalFrameTime = System.currentTimeMillis() - frameStart;
-            actualFps = totalFrameTime > 0 ? 1000.0 / totalFrameTime : fps;
+            double actualFps = totalFrameTime > 0 ? 1000.0 / totalFrameTime : fps;
+            renderer.setActualFps(actualFps);
         }
 
         setVisible(false);
     }
 
     /**
-     * This method will set up everything need for the game to run
+     * Initialize the game window
      */
     void initialize() {
-        setTitle("Game Tutorial");
+        setTitle("Physics Simulation");
         setSize(windowWidth, windowHeight);
         setResizable(false);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
 
-        insets = getInsets();
+        Insets insets = getInsets();
         setSize(insets.left + windowWidth + insets.right,
                 insets.top + windowHeight + insets.bottom);
-
-        backBuffer = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_RGB);
-    }
-
-    void update() {
-        for (ListIterator<Ball> it = balls.listIterator(); it.hasNext(); ) {
-            Ball ball = it.next();
-            ball.update(1.0 / fps * GAME_SPEED);
-
-            // Check X boundaries
-            if (ball.getPosition().getX() > windowWidth / SCALE) {
-                ball.setPosition(new Vector(windowWidth / SCALE, ball.getPosition().getY()));
-                ball.flipAboutAxis(Axis.Y);
-            } else if (ball.getPosition().getX() < 0) {
-                ball.setPosition(new Vector(0, ball.getPosition().getY()));
-                ball.flipAboutAxis(Axis.Y);
-            }
-
-            // Check Y boundaries
-            if (ball.getPosition().getY() > windowHeight / SCALE) {
-                ball.setPosition(new Vector(ball.getPosition().getX(), windowHeight / SCALE));
-                ball.flipAboutAxis(Axis.X);
-            } else if (ball.getPosition().getY() < 0) {
-                ball.setPosition(new Vector(ball.getPosition().getX(), 0));
-                ball.flipAboutAxis(Axis.X);
-            }
-        }
-    }
-
-    void updateAllBallCoefficients() {
-        for (Ball ball : balls) {
-            ball.setCoefficientOfRestitution(coefficientOfRestitution);
-            ball.setDragCoefficient(dragCoefficient);
-        }
-    }
-
-    void draw() {
-        Graphics g = getGraphics();
-
-        Graphics2D graphics = (Graphics2D) backBuffer.getGraphics();
-        AffineTransform at = graphics.getTransform();
-        graphics.scale(1, -1);
-        graphics.translate(0, -windowHeight);
-
-        graphics.setColor(Color.BLACK);
-        graphics.fillRect(0, 0, windowWidth, windowHeight);
-
-        for (Ball ball : balls) {
-            ball.draw(graphics);
-        }
-        ray.draw(graphics);
-
-        // Reset transform to draw HUD text in normal orientation
-        graphics.setTransform(at);
-
-        // Draw physics parameters in upper right corner
-        graphics.setColor(Color.WHITE);
-        graphics.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        String fpsText = String.format("FPS: %.1f", actualFps);
-        String restitutionText = String.format("Restitution: %.2f", coefficientOfRestitution);
-        String dragText = String.format("Drag: %.3f", dragCoefficient);
-
-        int textX = windowWidth - 150;
-        int textY = 20;
-        graphics.drawString(fpsText, textX, textY);
-        graphics.drawString(restitutionText, textX, textY + 20);
-        graphics.drawString(dragText, textX, textY + 40);
-
-        g.drawImage(backBuffer, insets.left, insets.top, this);
     }
 }

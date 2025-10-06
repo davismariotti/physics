@@ -18,7 +18,7 @@ public class Ray extends RigidBody {
     private int distance;
 
     public Ray(Vector position, int length, double theta, int distance) {
-        super(position, Vector.ZERO, Collections.emptyList(), 1, true, 0.0, 0.0);
+        super(position, Vector.ZERO, Collections.emptyList(), 1, true, 0.0, 0.0, null);
         this.length = length;
         this.theta = degreesToRadians(theta);
         this.distance = distance;
