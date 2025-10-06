@@ -5,7 +5,6 @@ import com.davismariotti.physics.forces.DragForce;
 import com.davismariotti.physics.forces.Force;
 import com.davismariotti.physics.forces.GravityForce;
 import com.davismariotti.physics.sprites.RigidBody;
-import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.List;
  * Manages the physics simulation, updating all bodies and applying constraints
  */
 public class PhysicsSimulator {
-    @Getter
     private final List<RigidBody> bodies;
     private final List<Constraint> constraints;
     private final List<Force> globalForces;
@@ -102,5 +100,9 @@ public class PhysicsSimulator {
 
     public PhysicsConfig getConfig() {
         return config;
+    }
+
+    public List<RigidBody> getBodies() {
+        return bodies;
     }
 }

@@ -4,7 +4,6 @@ import com.davismariotti.physics.components.Ray;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.rendering.Camera;
 import com.davismariotti.physics.sprites.Ball;
-import lombok.Getter;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -15,7 +14,6 @@ import java.util.Collections;
  * Composes a Ray for visual representation
  */
 public class AimIndicator implements WorldInteraction {
-    @Getter
     private final Ray ray;
 
     public AimIndicator(Vector position, int length, double thetaDegrees, int distance) {
@@ -45,14 +43,18 @@ public class AimIndicator implements WorldInteraction {
         ray.draw(graphics, camera);
     }
 
+    public Ray getRay() {
+        return ray;
+    }
+
     private void spawnBall(InputContext context) {
         Ball ball = new Ball(
                 ray.getEndPosition(), // Spawn at end of launcher, not at base
                 ray.getUnitVector().multiply(40),
-                Collections.singletonList(context.getSimulator().getConfig().getGravity()),
-                context.getSimulator().getConfig().getCoefficientOfRestitution(),
-                context.getSimulator().getConfig().getDragCoefficient()
+                Collections.singletonList(context.simulator().getConfig().getGravity()),
+                context.simulator().getConfig().getCoefficientOfRestitution(),
+                context.simulator().getConfig().getDragCoefficient()
         );
-        context.getSimulator().addBody(ball);
+        context.simulator().addBody(ball);
     }
 }

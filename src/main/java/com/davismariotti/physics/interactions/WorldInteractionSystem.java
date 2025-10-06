@@ -1,7 +1,6 @@
 package com.davismariotti.physics.interactions;
 
 import com.davismariotti.physics.rendering.Camera;
-import lombok.Getter;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.List;
  * Manages world interactions - components that interact with the physics world
  */
 public class WorldInteractionSystem {
-    @Getter
     private final List<WorldInteraction> interactions;
 
     public WorldInteractionSystem() {
@@ -57,5 +55,9 @@ public class WorldInteractionSystem {
         for (WorldInteraction interaction : interactions) {
             interaction.draw(graphics, camera);
         }
+    }
+
+    public List<WorldInteraction> getInteractions() {
+        return interactions;
     }
 }

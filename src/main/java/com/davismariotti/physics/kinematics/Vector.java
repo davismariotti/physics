@@ -1,22 +1,11 @@
 package com.davismariotti.physics.kinematics;
 
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
-@ToString
-@EqualsAndHashCode
-@AllArgsConstructor
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-@Getter
-public class Vector {
+public record Vector(double x, double y) {
 
     public static Vector ZERO = new Vector(0, 0);
 
-    double x;
-    double y;
-
     public Vector add(Vector other) {
-        return new Vector(x + other.getX(), y + other.getY());
+        return new Vector(x + other.x, y + other.y);
     }
 
     public Vector multiply(double s) {

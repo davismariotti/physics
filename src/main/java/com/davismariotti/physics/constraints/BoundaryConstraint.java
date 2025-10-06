@@ -3,39 +3,31 @@ package com.davismariotti.physics.constraints;
 import com.davismariotti.physics.kinematics.Axis;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.sprites.RigidBody;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 /**
  * Constraint that keeps rigid bodies within rectangular boundaries
  */
-@Data
-@AllArgsConstructor
-public class BoundaryConstraint implements Constraint {
-    private double minX;
-    private double maxX;
-    private double minY;
-    private double maxY;
+public record BoundaryConstraint(double minX, double maxX, double minY, double maxY) implements Constraint {
 
     @Override
     public void apply(RigidBody body, double epsilon) {
         Vector position = body.getPosition();
 
         // Check X boundaries
-        if (position.getX() > maxX) {
-            body.setPosition(new Vector(maxX, position.getY()));
+        if (position.x() > maxX) {
+            body.setPosition(new Vector(maxX, position.y()));
             body.flipAboutAxis(Axis.Y);
-        } else if (position.getX() < minX) {
-            body.setPosition(new Vector(minX, position.getY()));
+        } else if (position.x() < minX) {
+            body.setPosition(new Vector(minX, position.y()));
             body.flipAboutAxis(Axis.Y);
         }
 
         // Check Y boundaries
-        if (position.getY() > maxY) {
-            body.setPosition(new Vector(position.getX(), maxY));
+        if (position.y() > maxY) {
+            body.setPosition(new Vector(position.x(), maxY));
             body.flipAboutAxis(Axis.X);
-        } else if (position.getY() < minY) {
-            body.setPosition(new Vector(position.getX(), minY));
+        } else if (position.y() < minY) {
+            body.setPosition(new Vector(position.x(), minY));
             body.flipAboutAxis(Axis.X);
         }
     }

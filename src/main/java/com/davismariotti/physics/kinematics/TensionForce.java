@@ -1,41 +1,39 @@
 package com.davismariotti.physics.kinematics;
 
+import com.davismariotti.physics.forces.Force;
 import com.davismariotti.physics.sprites.RigidBody;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
 
-@ToString
-@EqualsAndHashCode(callSuper = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-@Getter
-public class TensionForce extends Vector {
-
-    private Vector origin;
-    private RigidBody body;
+/**
+ * Represents tension force (not currently used in simulation)
+ */
+public class TensionForce implements Force {
+    private final Vector origin;
+    private final RigidBody body;
 
     public TensionForce(Vector origin, RigidBody body) {
-        super(0, 0);
         this.origin = origin;
         this.body = body;
     }
 
+    @Override
+    public Vector calculate(RigidBody body) {
+        return new Vector(0, 0);
+    }
+
     public Vector getVectorBetweenPoints() {
-        return new Vector(origin.getX() - body.getPosition().getX(), origin.getY() - body.getPosition().getY());
+        return new Vector(origin.x() - body.getPosition().x(), origin.y() - body.getPosition().y());
     }
 
     public double getAngle() {
-//        Math.atan2()
-
+        // Math.atan2()
         return 0;
     }
 
-    @Override
-    public double getX() {
-        return 0;
+    public Vector getOrigin() {
+        return origin;
     }
 
-    @Override
-    public double getY() {
-        return 0;
+    public RigidBody getBody() {
+        return body;
     }
 }

@@ -1,7 +1,6 @@
 package com.davismariotti.physics.rendering;
 
 import com.davismariotti.physics.core.PhysicsConfig;
-import lombok.Setter;
 
 import java.awt.*;
 
@@ -13,7 +12,6 @@ public class HUDRenderer implements RenderComponent {
     private final int windowWidth;
     private final int windowHeight;
 
-    @Setter
     private double fps;
 
     public HUDRenderer(PhysicsConfig config, int windowWidth, int windowHeight) {
@@ -37,5 +35,9 @@ public class HUDRenderer implements RenderComponent {
         graphics.drawString(fpsText, textX, textY);
         graphics.drawString(restitutionText, textX, textY + 20);
         graphics.drawString(dragText, textX, textY + 40);
+    }
+
+    public void setFps(double fps) {
+        this.fps = fps;
     }
 }

@@ -2,8 +2,6 @@ package com.davismariotti.physics.components;
 
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.rendering.Camera;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 import java.awt.*;
 
@@ -11,13 +9,18 @@ import java.awt.*;
  * Pure geometry component representing a ray/line with direction
  * Can be composed into interactive elements like aim indicators
  */
-@Data
-@AllArgsConstructor
 public class Ray {
     private Vector position;
     private int length; // in world units
     private double theta; // angle in radians
     private int distance; // in world units, offset from position
+
+    public Ray(Vector position, int length, double theta, int distance) {
+        this.position = position;
+        this.length = length;
+        this.theta = theta;
+        this.distance = distance;
+    }
 
     /**
      * Create a ray with angle in degrees
@@ -49,8 +52,8 @@ public class Ray {
      */
     public Vector getUnitVector() {
         Vector fullVector = new Vector(
-                getEndPosition().getX() - getStartPosition().getX(),
-                getEndPosition().getY() - getStartPosition().getY()
+                getEndPosition().x() - getStartPosition().x(),
+                getEndPosition().y() - getStartPosition().y()
         );
         return fullVector.getUnitVector();
     }
@@ -101,5 +104,37 @@ public class Ray {
 
     private static double degreesToRadians(double degrees) {
         return degrees * (Math.PI / 180);
+    }
+
+    public Vector getPosition() {
+        return position;
+    }
+
+    public void setPosition(Vector position) {
+        this.position = position;
+    }
+
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    public double getTheta() {
+        return theta;
+    }
+
+    public void setTheta(double theta) {
+        this.theta = theta;
+    }
+
+    public int getDistance() {
+        return distance;
+    }
+
+    public void setDistance(int distance) {
+        this.distance = distance;
     }
 }

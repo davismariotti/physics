@@ -22,15 +22,15 @@ public class Ball extends RigidBody {
         double screenRadius = camera.worldToScreenDistance(RADIUS);
 
         // Center the circle on the position
-        double x = screenPos.x - screenRadius;
-        double y = screenPos.y - screenRadius;
+        double x = screenPos.x() - screenRadius;
+        double y = screenPos.y() - screenRadius;
         double diameter = screenRadius * 2;
 
         // Draw ball with gradient for 3D effect
         Ellipse2D ellipse = new Ellipse2D.Double(x, y, diameter, diameter);
 
         // Create radial gradient for shading
-        Point2D center = new Point2D.Double(screenPos.x - screenRadius * 0.3, screenPos.y - screenRadius * 0.3);
+        Point2D center = new Point2D.Double(screenPos.x() - screenRadius * 0.3, screenPos.y() - screenRadius * 0.3);
         float radius = (float) screenRadius;
         float[] dist = {0.0f, 1.0f};
         Color[] colors = {new Color(255, 100, 100), new Color(200, 50, 50)};
