@@ -1,25 +1,24 @@
 package com.davismariotti.physics.input;
 
 import com.davismariotti.physics.core.PhysicsSimulator;
-import com.davismariotti.physics.sprites.Ball;
-import com.davismariotti.physics.sprites.Ray;
+import com.davismariotti.physics.interactions.InputContext;
+import com.davismariotti.physics.interactions.WorldInteractionSystem;
 
 import java.awt.event.KeyEvent;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Handles keyboard input and updates game state accordingly
+ * Handles keyboard input and delegates to appropriate systems
  */
 public class InputHandler {
     private final Set<Integer> pressed = new HashSet<>();
     private final PhysicsSimulator simulator;
-    private final Ray ray;
+    private final WorldInteractionSystem interactionSystem;
 
-    public InputHandler(PhysicsSimulator simulator, Ray ray) {
+    public InputHandler(PhysicsSimulator simulator, WorldInteractionSystem interactionSystem) {
         this.simulator = simulator;
-        this.ray = ray;
+        this.interactionSystem = interactionSystem;
     }
 
     public synchronized void keyPressed(int keyCode) {
@@ -34,24 +33,15 @@ public class InputHandler {
      * Process currently pressed keys and update game state
      */
     public void processInput() {
+        // Create input context for interactions
+        InputContext context = new InputContext(pressed, simulator);
+
+        // Delegate to interaction system
+        interactionSystem.handleInput(context);
+
+        // Handle physics config controls
         if (pressed.size() >= 1) {
             for (int pressedCode : pressed) {
-                if (pressedCode == KeyEvent.VK_LEFT) {
-                    ray.addAngle(3);
-                }
-                if (pressedCode == KeyEvent.VK_RIGHT) {
-                    ray.addAngle(-3);
-                }
-                if (pressedCode == KeyEvent.VK_ENTER) {
-                    Ball ball = new Ball(
-                            ray.getPosition(),
-                            ray.getUnitVector().multiply(40),
-                            Collections.singletonList(simulator.getConfig().getGravity()),
-                            simulator.getConfig().getCoefficientOfRestitution(),
-                            simulator.getConfig().getDragCoefficient()
-                    );
-                    simulator.addBody(ball);
-                }
                 if (pressedCode == KeyEvent.VK_UP) {
                     double newDrag = Math.min(1.0, simulator.getConfig().getDragCoefficient() + 0.001);
                     simulator.updateDragCoefficient(newDrag);

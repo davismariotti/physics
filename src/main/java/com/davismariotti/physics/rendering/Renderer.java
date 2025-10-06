@@ -1,7 +1,7 @@
 package com.davismariotti.physics.rendering;
 
 import com.davismariotti.physics.core.PhysicsSimulator;
-import com.davismariotti.physics.sprites.Ray;
+import com.davismariotti.physics.interactions.WorldInteractionSystem;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -18,14 +18,14 @@ public class Renderer {
     private final List<RenderComponent> components;
     private final HUDRenderer hudRenderer;
 
-    public Renderer(int windowWidth, int windowHeight, PhysicsSimulator simulator, Ray ray) {
+    public Renderer(int windowWidth, int windowHeight, PhysicsSimulator simulator, WorldInteractionSystem interactionSystem) {
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
         this.backBuffer = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_RGB);
         this.components = new ArrayList<>();
 
         // Create and add render components
-        WorldRenderer worldRenderer = new WorldRenderer(simulator, ray, windowHeight);
+        WorldRenderer worldRenderer = new WorldRenderer(simulator, interactionSystem, windowHeight);
         this.hudRenderer = new HUDRenderer(simulator.getConfig(), windowWidth, windowHeight);
 
         components.add(worldRenderer);

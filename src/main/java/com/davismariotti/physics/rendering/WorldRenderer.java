@@ -1,23 +1,23 @@
 package com.davismariotti.physics.rendering;
 
 import com.davismariotti.physics.core.PhysicsSimulator;
-import com.davismariotti.physics.sprites.Ray;
+import com.davismariotti.physics.interactions.WorldInteractionSystem;
 import com.davismariotti.physics.sprites.RigidBody;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
 /**
- * Renders the physics world (bodies, ray) in world-space coordinates
+ * Renders the physics world (bodies, interactions) in world-space coordinates
  */
 public class WorldRenderer implements RenderComponent {
     private final PhysicsSimulator simulator;
-    private final Ray ray;
+    private final WorldInteractionSystem interactionSystem;
     private final int windowHeight;
 
-    public WorldRenderer(PhysicsSimulator simulator, Ray ray, int windowHeight) {
+    public WorldRenderer(PhysicsSimulator simulator, WorldInteractionSystem interactionSystem, int windowHeight) {
         this.simulator = simulator;
-        this.ray = ray;
+        this.interactionSystem = interactionSystem;
         this.windowHeight = windowHeight;
     }
 
@@ -35,8 +35,8 @@ public class WorldRenderer implements RenderComponent {
             body.draw(graphics);
         }
 
-        // Render the ray (aim indicator)
-        ray.draw(graphics);
+        // Render all world interactions
+        interactionSystem.draw(graphics);
 
         // Restore original transform
         graphics.setTransform(originalTransform);

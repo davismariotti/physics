@@ -4,9 +4,10 @@ import com.davismariotti.physics.constraints.BoundaryConstraint;
 import com.davismariotti.physics.core.PhysicsConfig;
 import com.davismariotti.physics.core.PhysicsSimulator;
 import com.davismariotti.physics.input.InputHandler;
+import com.davismariotti.physics.interactions.AimIndicator;
+import com.davismariotti.physics.interactions.WorldInteractionSystem;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.rendering.Renderer;
-import com.davismariotti.physics.sprites.Ray;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -24,9 +25,9 @@ public class Game extends JFrame {
     public static double GAME_SPEED;
 
     private final PhysicsSimulator simulator;
+    private final WorldInteractionSystem interactionSystem;
     private final InputHandler inputHandler;
     private final Renderer renderer;
-    private final Ray ray;
 
     private boolean isRunning = true;
     private final int fps = 30;
@@ -48,9 +49,6 @@ public class Game extends JFrame {
         SCALE = config.getScale();
         GAME_SPEED = config.getGameSpeed();
 
-        // Create ray (aim indicator)
-        ray = new Ray(Vector.ZERO, 30, 45, 50);
-
         // Create physics simulator
         simulator = new PhysicsSimulator(config);
 
@@ -61,11 +59,18 @@ public class Game extends JFrame {
         );
         simulator.addConstraint(boundaryConstraint);
 
+        // Create world interaction system
+        interactionSystem = new WorldInteractionSystem();
+
+        // Add aim indicator interaction
+        AimIndicator aimIndicator = new AimIndicator(Vector.ZERO, 30, 45, 50);
+        interactionSystem.addInteraction(aimIndicator);
+
         // Create input handler
-        inputHandler = new InputHandler(simulator, ray);
+        inputHandler = new InputHandler(simulator, interactionSystem);
 
         // Create renderer
-        renderer = new Renderer(windowWidth, windowHeight, simulator, ray);
+        renderer = new Renderer(windowWidth, windowHeight, simulator, interactionSystem);
 
         // Set up keyboard listener
         addKeyListener(new KeyListener() {
