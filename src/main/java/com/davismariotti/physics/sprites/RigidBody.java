@@ -39,7 +39,7 @@ public abstract class RigidBody {
         }
     }
 
-    public double getKeneticEnergy() {
+    public double getKineticEnergy() {
         double magnitude = velocity.getMagnitude();
         return Math.abs(.5 * mass * magnitude * magnitude);
     }
@@ -49,7 +49,7 @@ public abstract class RigidBody {
     }
 
     public double getTotalEnergy() {
-        return getKeneticEnergy() + getPotentialEnergy();
+        return getKineticEnergy() + getPotentialEnergy();
     }
 
     public Vector getResultantForce() {
