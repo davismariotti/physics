@@ -24,6 +24,10 @@ public class Game extends JFrame {
     public static double SCALE = 10.0;
     public static double GAME_SPEED = 3.0;
 
+    double coefficientOfRestitution = 0.9;
+    double dragCoefficient = 0.0;
+    double actualFps = 0.0;
+
     boolean isRunning = true;
     int fps = 30;
     int windowWidth = 1200;
@@ -77,7 +81,7 @@ public class Game extends JFrame {
         initialize();
 
         while (isRunning) {
-            long time = System.currentTimeMillis();
+            long frameStart = System.currentTimeMillis();
 
             if (pressed.size() >= 1) {
                 for (int pressedCode : pressed) {
@@ -88,8 +92,24 @@ public class Game extends JFrame {
                         ray.addAngle(-3);
                     }
                     if (pressedCode == KeyEvent.VK_ENTER) {
-                        Ball ball = new Ball(ray.getPosition(), ray.getUnitVector().multiply(40), Collections.singletonList(GRAVITY), 0.9, 0.0);
+                        Ball ball = new Ball(ray.getPosition(), ray.getUnitVector().multiply(40), Collections.singletonList(GRAVITY), coefficientOfRestitution, dragCoefficient);
                         balls.listIterator().add(ball);
+                    }
+                    if (pressedCode == KeyEvent.VK_UP) {
+                        dragCoefficient = Math.min(1.0, dragCoefficient + 0.001);
+                        updateAllBallCoefficients();
+                    }
+                    if (pressedCode == KeyEvent.VK_DOWN) {
+                        dragCoefficient = Math.max(0.0, dragCoefficient - 0.001);
+                        updateAllBallCoefficients();
+                    }
+                    if (pressedCode == KeyEvent.VK_R) {
+                        coefficientOfRestitution = Math.min(1.0, coefficientOfRestitution + 0.05);
+                        updateAllBallCoefficients();
+                    }
+                    if (pressedCode == KeyEvent.VK_F) {
+                        coefficientOfRestitution = Math.max(0.0, coefficientOfRestitution - 0.05);
+                        updateAllBallCoefficients();
                     }
                     if (pressedCode == KeyEvent.VK_Q) {
                         System.exit(0);
@@ -101,14 +121,19 @@ public class Game extends JFrame {
             draw();
 
             //  delay for each frame  -   time it took for one frame
-            time = (1000 / fps) - (System.currentTimeMillis() - time);
+            long frameTime = System.currentTimeMillis() - frameStart;
+            long sleepTime = (1000 / fps) - frameTime;
 
-            if (time > 0) {
+            if (sleepTime > 0) {
                 try {
-                    Thread.sleep(time);
+                    Thread.sleep(sleepTime);
                 } catch (Exception ignored) {
                 }
             }
+
+            // Calculate actual FPS based on total frame time (including sleep)
+            long totalFrameTime = System.currentTimeMillis() - frameStart;
+            actualFps = totalFrameTime > 0 ? 1000.0 / totalFrameTime : fps;
         }
 
         setVisible(false);
@@ -153,16 +178,15 @@ public class Game extends JFrame {
                 ball.setPosition(new Vector(ball.getPosition().getX(), 0));
                 ball.flipAboutAxis(Axis.X);
             }
-
-//            if (ball.getPosition().isOutOfFrame(windowWidth, windowHeight, 20)) {
-//                it.remove();
-//            }
-        }
-        if (balls.size() > 0) {
-            System.out.println(balls.get(0).getTotalEnergy());
         }
     }
 
+    void updateAllBallCoefficients() {
+        for (Ball ball : balls) {
+            ball.setCoefficientOfRestitution(coefficientOfRestitution);
+            ball.setDragCoefficient(dragCoefficient);
+        }
+    }
 
     void draw() {
         Graphics g = getGraphics();
@@ -186,13 +210,15 @@ public class Game extends JFrame {
         // Draw physics parameters in upper right corner
         graphics.setColor(Color.WHITE);
         graphics.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        String restitutionText = String.format("Restitution: %.2f", 0.9);
-        String dragText = String.format("Drag: %.2f", 0.0);
+        String fpsText = String.format("FPS: %.1f", actualFps);
+        String restitutionText = String.format("Restitution: %.2f", coefficientOfRestitution);
+        String dragText = String.format("Drag: %.3f", dragCoefficient);
 
         int textX = windowWidth - 150;
         int textY = 20;
-        graphics.drawString(restitutionText, textX, textY);
-        graphics.drawString(dragText, textX, textY + 20);
+        graphics.drawString(fpsText, textX, textY);
+        graphics.drawString(restitutionText, textX, textY + 20);
+        graphics.drawString(dragText, textX, textY + 40);
 
         g.drawImage(backBuffer, insets.left, insets.top, this);
     }
