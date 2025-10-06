@@ -25,6 +25,9 @@ public class Vector {
 
     public Vector getUnitVector() {
         double denominator = Math.sqrt(x * x + y * y);
+        if (denominator == 0) {
+            return ZERO;
+        }
         return new Vector(x / denominator, y / denominator);
     }
 
