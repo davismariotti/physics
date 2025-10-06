@@ -88,7 +88,7 @@ public class Game extends JFrame {
                         ray.addAngle(-3);
                     }
                     if (pressedCode == KeyEvent.VK_ENTER) {
-                        Ball ball = new Ball(ray.getPosition(), ray.getUnitVector().multiply(40), Collections.singletonList(GRAVITY));
+                        Ball ball = new Ball(ray.getPosition(), ray.getUnitVector().multiply(40), Collections.singletonList(GRAVITY), 0.9, 0.0);
                         balls.listIterator().add(ball);
                     }
                     if (pressedCode == KeyEvent.VK_Q) {
@@ -180,7 +180,20 @@ public class Game extends JFrame {
         }
         ray.draw(graphics);
 
-        g.drawImage(backBuffer, insets.left, insets.top, this);
+        // Reset transform to draw HUD text in normal orientation
         graphics.setTransform(at);
+
+        // Draw physics parameters in upper right corner
+        graphics.setColor(Color.WHITE);
+        graphics.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        String restitutionText = String.format("Restitution: %.2f", 0.9);
+        String dragText = String.format("Drag: %.2f", 0.0);
+
+        int textX = windowWidth - 150;
+        int textY = 20;
+        graphics.drawString(restitutionText, textX, textY);
+        graphics.drawString(dragText, textX, textY + 20);
+
+        g.drawImage(backBuffer, insets.left, insets.top, this);
     }
 }

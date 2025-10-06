@@ -9,8 +9,8 @@ import java.util.List;
 
 public class Ball extends RigidBody {
 
-    public Ball(Vector position, Vector vector, List<Vector> forces) {
-        super(position, vector, forces, 1, false);
+    public Ball(Vector position, Vector vector, List<Vector> forces, double coefficientOfRestitution, double dragCoefficient) {
+        super(position, vector, forces, 1, false, coefficientOfRestitution, dragCoefficient);
     }
 
     @Override

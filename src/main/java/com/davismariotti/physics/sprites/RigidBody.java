@@ -19,12 +19,24 @@ public abstract class RigidBody {
     private List<Vector> forces;
     private double mass;
     private boolean isStatic;
+    private double coefficientOfRestitution;
+    private double dragCoefficient;
 
     public abstract void draw(Graphics2D graphics);
 
     public void update(double epsilon) {
         if (!isStatic) {
             Vector force = this.getResultantForce();
+
+            // Apply drag force: F_drag = -dragCoefficient * velocity * |velocity|
+            if (dragCoefficient > 0) {
+                double velocityMagnitude = velocity.getMagnitude();
+                if (velocityMagnitude > 0) {
+                    Vector dragForce = velocity.multiply(-dragCoefficient * velocityMagnitude);
+                    force = force.add(dragForce);
+                }
+            }
+
             Vector acceleration = new Vector(force.getX() / this.getMass(), force.getY() / this.getMass());
             setPosition(getPosition().add(new Vector(getVelocity().getX() * epsilon + .5 * acceleration.getX() * epsilon * epsilon, getVelocity().getY() * epsilon + .5 * acceleration.getY() * epsilon * epsilon)));
             setVelocity(getVelocity().add(new Vector(acceleration.getX() * epsilon, acceleration.getY() * epsilon)));
@@ -33,19 +45,19 @@ public abstract class RigidBody {
 
     public void flipAboutAxis(Axis axis) {
         if (axis == X) {
-            setVelocity(new Vector(getVelocity().getX(), -.9 * getVelocity().getY()));
+            setVelocity(new Vector(getVelocity().getX(), -coefficientOfRestitution * getVelocity().getY()));
         } else {
-            setVelocity(new Vector(-.9 * getVelocity().getX(), getVelocity().getY()));
+            setVelocity(new Vector(-coefficientOfRestitution * getVelocity().getX(), getVelocity().getY()));
         }
     }
 
     public double getKineticEnergy() {
         double magnitude = velocity.getMagnitude();
-        return Math.abs(.5 * mass * magnitude * magnitude);
+        return .5 * mass * magnitude * magnitude;
     }
 
     public double getPotentialEnergy() {
-        return Math.abs(mass * Game.GRAVITY.getY() * position.getY());
+        return mass * -Game.GRAVITY.getY() * position.getY();
     }
 
     public double getTotalEnergy() {
