@@ -63,7 +63,8 @@ public class Game extends JFrame {
         interactionSystem = new WorldInteractionSystem();
 
         // Add aim indicator interaction
-        AimIndicator aimIndicator = new AimIndicator(Vector.ZERO, 30, 45, 50);
+        // Length and distance are in world units, will be visually displayed in screen space
+        AimIndicator aimIndicator = new AimIndicator(Vector.ZERO, 3, 45, 5);
         interactionSystem.addInteraction(aimIndicator);
 
         // Create input handler

@@ -1,6 +1,5 @@
 package com.davismariotti.physics.sprites;
 
-import com.davismariotti.physics.Game;
 import com.davismariotti.physics.kinematics.Axis;
 import com.davismariotti.physics.kinematics.Vector;
 import lombok.AllArgsConstructor;
@@ -63,19 +62,6 @@ public abstract class RigidBody {
         } else {
             setVelocity(new Vector(-coefficientOfRestitution * getVelocity().getX(), getVelocity().getY()));
         }
-    }
-
-    public double getKineticEnergy() {
-        double magnitude = velocity.getMagnitude();
-        return .5 * mass * magnitude * magnitude;
-    }
-
-    public double getPotentialEnergy() {
-        return mass * -Game.GRAVITY.getY() * position.getY();
-    }
-
-    public double getTotalEnergy() {
-        return getKineticEnergy() + getPotentialEnergy();
     }
 
     public Vector getResultantForce() {

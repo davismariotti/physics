@@ -26,9 +26,11 @@ public class Renderer {
 
         // Create and add render components
         WorldRenderer worldRenderer = new WorldRenderer(simulator, interactionSystem, windowHeight);
+        GroundRenderer groundRenderer = new GroundRenderer(windowWidth, 0.0); // Ground at y=0
         this.hudRenderer = new HUDRenderer(simulator.getConfig(), windowWidth, windowHeight);
 
         components.add(worldRenderer);
+        components.add(groundRenderer);
         components.add(hudRenderer);
     }
 

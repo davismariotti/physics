@@ -46,7 +46,7 @@ public class AimIndicator implements WorldInteraction {
 
     private void spawnBall(InputContext context) {
         Ball ball = new Ball(
-                ray.getPosition(),
+                ray.getEndPosition(), // Spawn at end of launcher, not at base
                 ray.getUnitVector().multiply(40),
                 Collections.singletonList(context.getSimulator().getConfig().getGravity()),
                 context.getSimulator().getConfig().getCoefficientOfRestitution(),
