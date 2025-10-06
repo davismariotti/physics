@@ -136,10 +136,21 @@ public class Game extends JFrame {
             Ball ball = it.next();
             ball.update(1.0 / fps * GAME_SPEED);
 
-            if (ball.getPosition().getX() > windowWidth / SCALE || ball.getPosition().getX() < 0) {
+            // Check X boundaries
+            if (ball.getPosition().getX() > windowWidth / SCALE) {
+                ball.setPosition(new Vector(windowWidth / SCALE, ball.getPosition().getY()));
+                ball.flipAboutAxis(Axis.Y);
+            } else if (ball.getPosition().getX() < 0) {
+                ball.setPosition(new Vector(0, ball.getPosition().getY()));
                 ball.flipAboutAxis(Axis.Y);
             }
-            if (ball.getPosition().getY() > windowHeight / SCALE || ball.getPosition().getY() < 0) {
+
+            // Check Y boundaries
+            if (ball.getPosition().getY() > windowHeight / SCALE) {
+                ball.setPosition(new Vector(ball.getPosition().getX(), windowHeight / SCALE));
+                ball.flipAboutAxis(Axis.X);
+            } else if (ball.getPosition().getY() < 0) {
+                ball.setPosition(new Vector(ball.getPosition().getX(), 0));
                 ball.flipAboutAxis(Axis.X);
             }
 
