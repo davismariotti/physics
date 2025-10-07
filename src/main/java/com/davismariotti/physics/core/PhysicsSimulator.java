@@ -1,6 +1,7 @@
 package com.davismariotti.physics.core;
 
 import com.davismariotti.physics.constraints.Constraint;
+import com.davismariotti.physics.constraints.DynamicCollisionConstraint;
 import com.davismariotti.physics.forces.DragForce;
 import com.davismariotti.physics.forces.Force;
 import com.davismariotti.physics.forces.GravityForce;
@@ -20,6 +21,7 @@ public class PhysicsSimulator {
     private final List<Constraint> constraints;
     private final List<Force> globalForces;
     private final PhysicsConfig config;
+    private final DynamicCollisionConstraint dynamicCollisionConstraint;
 
     public PhysicsSimulator(PhysicsConfig config) {
         this.dynamicBodies = new ArrayList<>();
@@ -31,6 +33,9 @@ public class PhysicsSimulator {
         // Set up default global forces
         globalForces.add(new GravityForce(config.getGravity()));
         globalForces.add(new DragForce(config.getDragCoefficient()));
+
+        // Set up dynamic collision constraint (handles ball-to-ball collisions)
+        this.dynamicCollisionConstraint = new DynamicCollisionConstraint(dynamicBodies, config.getGravity());
     }
 
     public void addBody(RigidBody body) {
@@ -88,6 +93,10 @@ public class PhysicsSimulator {
                 // Clear temporary forces for next substep
                 body.clearTemporaryForces();
             }
+
+            // Apply dynamic collision constraint (ball-to-ball collisions)
+            // Called once per substep, not per body
+            dynamicCollisionConstraint.applyAll(substepDelta);
         }
     }
 

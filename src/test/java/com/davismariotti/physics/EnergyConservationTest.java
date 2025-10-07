@@ -183,4 +183,5 @@ class EnergyConservationTest {
 
         return maxY;
     }
+
 }

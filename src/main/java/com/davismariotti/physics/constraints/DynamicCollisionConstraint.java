@@ -50,7 +50,17 @@ public class DynamicCollisionConstraint implements Constraint {
                 );
 
                 if (result.hasCollision()) {
-                    handleDynamicCollision(bodyA, bodyB, result, substepDelta, 0);
+                    // Check if velocities are separating - if so, skip resolution
+                    Vector velA = bodyA.getVelocity();
+                    Vector velB = bodyB.getVelocity();
+                    Vector relVel = new Vector(velB.x() - velA.x(), velB.y() - velA.y());
+                    Vector normal = result.normal();
+                    double velAlongNormal = relVel.x() * normal.x() + relVel.y() * normal.y();
+
+                    // Only resolve if approaching (velAlongNormal < 0)
+                    if (velAlongNormal < 0) {
+                        handleDynamicCollision(bodyA, bodyB, result, substepDelta, 0);
+                    }
                 }
             }
         }
@@ -123,13 +133,14 @@ public class DynamicCollisionConstraint implements Constraint {
         // Apply impulse
         Vector impulse = new Vector(normal.x() * impulseScalar, normal.y() * impulseScalar);
 
+        // Impulse pushes A backward (opposite to normal) and B forward (along normal)
         Vector newVelA = new Vector(
-                velA.x() + impulse.x() / massA,
-                velA.y() + impulse.y() / massA
+                velA.x() - impulse.x() / massA,
+                velA.y() - impulse.y() / massA
         );
         Vector newVelB = new Vector(
-                velB.x() - impulse.x() / massB,
-                velB.y() - impulse.y() / massB
+                velB.x() + impulse.x() / massB,
+                velB.y() + impulse.y() / massB
         );
 
         bodyA.setVelocity(newVelA);
