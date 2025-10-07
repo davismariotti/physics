@@ -1,5 +1,6 @@
 package com.davismariotti.physics.sprites;
 
+import com.davismariotti.physics.collision.Collider;
 import com.davismariotti.physics.kinematics.Axis;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.rendering.Camera;
@@ -34,6 +35,12 @@ public abstract class RigidBody {
     }
 
     public abstract void draw(Graphics2D graphics, Camera camera);
+
+    /**
+     * Get the collision shape for this rigid body
+     * @return the collider representing this body's shape
+     */
+    public abstract Collider getCollider();
 
     public void update(double epsilon) {
         if (!isStatic) {

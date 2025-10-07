@@ -1,6 +1,7 @@
 package com.davismariotti.physics;
 
 import com.davismariotti.physics.constraints.BoundaryConstraint;
+import com.davismariotti.physics.constraints.CollisionConstraint;
 import com.davismariotti.physics.core.PhysicsConfig;
 import com.davismariotti.physics.core.PhysicsSimulator;
 import com.davismariotti.physics.input.InputHandler;
@@ -8,6 +9,7 @@ import com.davismariotti.physics.interactions.AimIndicator;
 import com.davismariotti.physics.interactions.WorldInteractionSystem;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.rendering.Renderer;
+import com.davismariotti.physics.sprites.Ground;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -52,12 +54,26 @@ public class Game extends JFrame {
         // Create physics simulator
         simulator = new PhysicsSimulator(config);
 
-        // Add boundary constraint
+        // Create ground (5% of screen height)
+        double groundHeight = (windowHeight / SCALE) * 0.05;
+        double groundWidth = windowWidth / SCALE;
+        Ground ground = new Ground(
+                groundWidth / 2,  // Center X
+                groundHeight / 2, // Center Y (bottom of screen)
+                groundWidth,
+                groundHeight
+        );
+        simulator.addBody(ground);
+
+        // Add boundary constraint (side walls and ceiling)
         BoundaryConstraint boundaryConstraint = new BoundaryConstraint(
                 0, windowWidth / SCALE,
                 0, windowHeight / SCALE
         );
         simulator.addConstraint(boundaryConstraint);
+
+        // Add collision constraint for ground interactions
+        simulator.addConstraint(new CollisionConstraint(simulator.getBodies()));
 
         // Create world interaction system
         interactionSystem = new WorldInteractionSystem();

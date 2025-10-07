@@ -1,5 +1,7 @@
 package com.davismariotti.physics.sprites;
 
+import com.davismariotti.physics.collision.CircleCollider;
+import com.davismariotti.physics.collision.Collider;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.rendering.Camera;
 
@@ -13,6 +15,11 @@ public class Ball extends RigidBody {
 
     public Ball(Vector position, Vector vector, List<Vector> forces, double coefficientOfRestitution, double dragCoefficient) {
         super(position, vector, forces, 1, false, coefficientOfRestitution, dragCoefficient, null);
+    }
+
+    @Override
+    public Collider getCollider() {
+        return new CircleCollider(this.getPosition(), RADIUS);
     }
 
     @Override
