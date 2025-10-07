@@ -11,7 +11,7 @@ import java.awt.geom.Point2D;
 import java.util.List;
 
 public class Ball extends RigidBody {
-    private static final double RADIUS = 0.5; // radius in world units
+    private static final double RADIUS = 5.0; // radius in world units
 
     public Ball(Vector position, Vector vector, List<Vector> forces, double coefficientOfRestitution, double dragCoefficient) {
         super(position, vector, forces, 1, false, coefficientOfRestitution, dragCoefficient, null);

@@ -51,9 +51,6 @@ public class Renderer {
      * @param insets the window insets
      */
     public void render(Graphics targetGraphics, Insets insets) {
-        // Update HUD with latest collision metrics
-        hudRenderer.setCollisionMetrics(simulator.getDynamicCollisionConstraint().getMetrics());
-
         Graphics2D graphics = (Graphics2D) backBuffer.getGraphics();
 
         // Clear background

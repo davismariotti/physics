@@ -39,24 +39,6 @@ public class HUDRenderer implements RenderComponent {
         graphics.drawString(String.format("Restitution: %.2f", config.getCoefficientOfRestitution()), textX, textY + (line++ * lineHeight));
         graphics.drawString(String.format("Drag: %.3f", config.getDragCoefficient()), textX, textY + (line++ * lineHeight));
 
-        // Collision metrics (if available)
-        if (collisionMetrics != null) {
-            line++; // Blank line
-            graphics.drawString("=== Collisions ===", textX, textY + (line++ * lineHeight));
-            graphics.drawString(String.format("Total: %d", collisionMetrics.getTotalCollisions()), textX, textY + (line++ * lineHeight));
-            graphics.drawString(String.format("Impulses: %d", collisionMetrics.getImpulseApplications()), textX, textY + (line++ * lineHeight));
-            graphics.drawString(String.format("Resting: %d", collisionMetrics.getRestingContacts()), textX, textY + (line++ * lineHeight));
-            graphics.drawString(String.format("Max Pen: %.3f", collisionMetrics.getMaxPenetration()), textX, textY + (line++ * lineHeight));
-
-            // Highlight clusters in red if detected
-            if (collisionMetrics.getClusteredBalls() >= 3) {
-                graphics.setColor(Color.RED);
-                graphics.drawString(String.format("!!! CLUSTER: %d balls !!!", collisionMetrics.getClusteredBalls()), textX, textY + (line++ * lineHeight));
-                graphics.setColor(Color.WHITE);
-            } else {
-                graphics.drawString("Cluster: None", textX, textY + (line++ * lineHeight));
-            }
-        }
     }
 
     public void setFps(double fps) {
