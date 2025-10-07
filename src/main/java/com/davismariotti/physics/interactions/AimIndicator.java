@@ -20,7 +20,7 @@ public class AimIndicator implements WorldInteraction {
 
     public AimIndicator(Vector position, int length, double thetaDegrees, int distance) {
         this.ray = Ray.withDegrees(position, length, thetaDegrees, distance);
-        this.spawnBallDebouncer = new ActionDebouncer(500, 100);
+        this.spawnBallDebouncer = new ActionDebouncer(500, 5);
     }
 
     @Override

@@ -11,7 +11,7 @@ import java.awt.geom.Point2D;
 import java.util.List;
 
 public class Ball extends DynamicBody {
-    private static final double RADIUS = 5.0; // radius in world units
+    private static final double RADIUS = 0.25;
 
     public Ball(Vector position, Vector vector, List<Vector> forces, MaterialProperties material) {
         super(position, vector, forces, 1.0, material);

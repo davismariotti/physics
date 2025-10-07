@@ -9,11 +9,14 @@ import com.davismariotti.physics.interactions.AimIndicator;
 import com.davismariotti.physics.interactions.WorldInteractionSystem;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.rendering.Renderer;
+import com.davismariotti.physics.sprites.Ball;
 import com.davismariotti.physics.sprites.Ground;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.List;
+import java.util.Random;
 import javax.swing.*;
 
 /**
@@ -32,7 +35,7 @@ public class Game extends JFrame {
     private final Renderer renderer;
 
     private boolean isRunning = true;
-    private final int fps = 30;
+    private final int fps = 100;
     private final int windowWidth = 1200;
     private final int windowHeight = 800;
 
@@ -88,6 +91,9 @@ public class Game extends JFrame {
 
         // Create renderer
         renderer = new Renderer(windowWidth, windowHeight, simulator, interactionSystem);
+
+        // Spawn initial batch of dynamic bodies for stress testing
+        spawnInitialBalls(config, groundHeight, 2000);
 
         // Set up keyboard listener
         addKeyListener(new KeyListener() {
@@ -158,5 +164,32 @@ public class Game extends JFrame {
         Insets insets = getInsets();
         setSize(insets.left + windowWidth + insets.right,
                 insets.top + windowHeight + insets.bottom);
+    }
+
+    private void spawnInitialBalls(PhysicsConfig config, double groundHeight, int count) {
+        Random random = new Random();
+        double worldWidth = windowWidth / SCALE;
+        double worldHeight = windowHeight / SCALE;
+
+        double horizontalPadding = 6.0;
+        double verticalPadding = 6.0;
+
+        double minX = horizontalPadding;
+        double maxX = Math.max(minX, worldWidth - horizontalPadding);
+        double minY = groundHeight + verticalPadding;
+        double maxY = Math.max(minY, worldHeight - verticalPadding);
+
+        for (int i = 0; i < count; i++) {
+            double x = minX + (maxX - minX) * random.nextDouble();
+            double y = minY + (maxY - minY) * random.nextDouble();
+
+            Ball ball = new Ball(
+                    new Vector(x, y),
+                    Vector.ZERO,
+                    List.of(config.getGravity()),
+                    config.getDefaultMaterial()
+            );
+            simulator.addBody(ball);
+        }
     }
 }
