@@ -176,9 +176,12 @@ public class ContinuousCollisionConstraint implements Constraint {
 
             dynamic.setVelocity(newVelocity);
 
-            // Apply friction ONLY if it's a resting/sliding contact (low restitution)
-            // Don't apply friction during bounces - the ball isn't actually sliding
-            if (effectiveRestitution < 0.1) {
+            // Apply friction based on material type and contact state:
+            // - Low restitution materials (< 0.5): Always apply friction during contact (sliding)
+            // - High restitution materials (>= 0.5): Only apply when resting (effectiveRestitution ~= 0)
+            boolean shouldApplyFriction = (restitution < 0.5) || (effectiveRestitution < 0.1);
+
+            if (shouldApplyFriction) {
                 applyFriction(dynamic, normal, normalImpulseMagnitude, velocity);
             }
         }
@@ -278,8 +281,10 @@ public class ContinuousCollisionConstraint implements Constraint {
 
             dynamic.setVelocity(newVelocity);
 
-            // Apply friction only for resting contacts
-            if (effectiveRestitution < 0.1) {
+            // Apply friction based on material type and contact state
+            boolean shouldApplyFriction = (restitution < 0.5) || (effectiveRestitution < 0.1);
+
+            if (shouldApplyFriction) {
                 applyFriction(dynamic, normal, normalImpulseMagnitude, velocity);
             }
         } else if (penetration > 0) {
