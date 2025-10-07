@@ -50,23 +50,29 @@ public class PhysicsSimulator {
      * @param epsilon time step
      */
     public void update(double epsilon) {
-        // Update all bodies
-        for (RigidBody body : bodies) {
-            // Apply global forces
-            for (Force force : globalForces) {
-                body.addForce(force.calculate(body));
+        // Use sub-stepping for more accurate collision detection
+        int substeps = config.getSubsteps();
+        double substepDelta = epsilon / substeps;
+
+        for (int step = 0; step < substeps; step++) {
+            // Update all bodies for this substep
+            for (RigidBody body : bodies) {
+                // Apply global forces
+                for (Force force : globalForces) {
+                    body.addForce(force.calculate(body));
+                }
+
+                // Update physics with smaller time step
+                body.update(substepDelta);
+
+                // Apply constraints
+                for (Constraint constraint : constraints) {
+                    constraint.apply(body, substepDelta);
+                }
+
+                // Clear temporary forces for next substep
+                body.clearTemporaryForces();
             }
-
-            // Update physics
-            body.update(epsilon);
-
-            // Apply constraints
-            for (Constraint constraint : constraints) {
-                constraint.apply(body, epsilon);
-            }
-
-            // Clear temporary forces for next frame
-            body.clearTemporaryForces();
         }
     }
 

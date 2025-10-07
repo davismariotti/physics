@@ -8,6 +8,7 @@ public class PhysicsConfig {
     private double gameSpeed;
     private double coefficientOfRestitution;
     private double dragCoefficient;
+    private int substeps;
 
     public PhysicsConfig() {
         this.gravity = new Vector(0, -9.8);
@@ -15,6 +16,7 @@ public class PhysicsConfig {
         this.gameSpeed = 3.0;
         this.coefficientOfRestitution = 0.9;
         this.dragCoefficient = 0.0;
+        this.substeps = 4;
     }
 
     public Vector getGravity() {
@@ -55,5 +57,13 @@ public class PhysicsConfig {
 
     public void setDragCoefficient(double dragCoefficient) {
         this.dragCoefficient = dragCoefficient;
+    }
+
+    public int getSubsteps() {
+        return substeps;
+    }
+
+    public void setSubsteps(int substeps) {
+        this.substeps = substeps;
     }
 }
