@@ -1,6 +1,7 @@
 package com.davismariotti.physics.interactions;
 
 import com.davismariotti.physics.components.Ray;
+import com.davismariotti.physics.input.ActionDebouncer;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.rendering.Camera;
 import com.davismariotti.physics.sprites.Ball;
@@ -15,9 +16,11 @@ import java.util.Collections;
  */
 public class AimIndicator implements WorldInteraction {
     private final Ray ray;
+    private final ActionDebouncer spawnBallDebouncer;
 
     public AimIndicator(Vector position, int length, double thetaDegrees, int distance) {
         this.ray = Ray.withDegrees(position, length, thetaDegrees, distance);
+        this.spawnBallDebouncer = new ActionDebouncer(500, 100);
     }
 
     @Override
@@ -33,7 +36,7 @@ public class AimIndicator implements WorldInteraction {
         if (context.isKeyPressed(KeyEvent.VK_RIGHT)) {
             ray.addAngleDegrees(-3);
         }
-        if (context.isKeyPressed(KeyEvent.VK_ENTER)) {
+        if (spawnBallDebouncer.shouldExecute(context.isKeyPressed(KeyEvent.VK_ENTER))) {
             spawnBall(context);
         }
     }
