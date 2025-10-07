@@ -1,7 +1,7 @@
 package com.davismariotti.physics;
 
 import com.davismariotti.physics.constraints.BoundaryConstraint;
-import com.davismariotti.physics.constraints.CollisionConstraint;
+import com.davismariotti.physics.constraints.ContinuousCollisionConstraint;
 import com.davismariotti.physics.core.PhysicsConfig;
 import com.davismariotti.physics.core.PhysicsSimulator;
 import com.davismariotti.physics.input.InputHandler;
@@ -72,8 +72,8 @@ public class Game extends JFrame {
         );
         simulator.addConstraint(boundaryConstraint);
 
-        // Add collision constraint for ground interactions
-        simulator.addConstraint(new CollisionConstraint(simulator.getBodies()));
+        // Add continuous collision constraint for ground interactions
+        simulator.addConstraint(new ContinuousCollisionConstraint(simulator.getStaticBodies(), config.getGravity()));
 
         // Create world interaction system
         interactionSystem = new WorldInteractionSystem();

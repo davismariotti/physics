@@ -1,0 +1,154 @@
+package com.davismariotti.physics.sprites;
+
+import com.davismariotti.physics.kinematics.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Abstract base class for dynamic rigid bodies that move and respond to forces
+ * Stores previous state for continuous collision detection
+ */
+public abstract non-sealed class DynamicBody implements RigidBody {
+    private Vector position;
+    private Vector velocity;
+    private double mass;
+
+    private Vector previousPosition;
+    private Vector previousVelocity;
+
+    private List<Vector> forces;
+    private double coefficientOfRestitution;
+    private double dragCoefficient;
+
+    private transient List<Vector> temporaryForces;
+
+    public DynamicBody(Vector position, Vector velocity, List<Vector> forces, double mass,
+                       double coefficientOfRestitution, double dragCoefficient) {
+        this.position = position;
+        this.velocity = velocity;
+        this.mass = mass;
+        this.forces = forces;
+        this.coefficientOfRestitution = coefficientOfRestitution;
+        this.dragCoefficient = dragCoefficient;
+        this.temporaryForces = new ArrayList<>();
+
+        this.previousPosition = position;
+        this.previousVelocity = velocity;
+    }
+
+    /**
+     * Store current state as previous state (called at beginning of substep)
+     */
+    public void storePreviousState() {
+        this.previousPosition = this.position;
+        this.previousVelocity = this.velocity;
+    }
+
+    /**
+     * Update physics state by integrating over time step
+     */
+    public void update(double epsilon) {
+        Vector force = this.getResultantForce();
+        Vector acceleration = new Vector(force.x() / this.mass, force.y() / this.mass);
+
+        position = position.add(new Vector(
+                velocity.x() * epsilon + 0.5 * acceleration.x() * epsilon * epsilon,
+                velocity.y() * epsilon + 0.5 * acceleration.y() * epsilon * epsilon
+        ));
+        velocity = velocity.add(new Vector(
+                acceleration.x() * epsilon,
+                acceleration.y() * epsilon
+        ));
+    }
+
+    /**
+     * Add a temporary force (cleared each frame)
+     */
+    public void addForce(Vector force) {
+        temporaryForces.add(force);
+    }
+
+    /**
+     * Clear all temporary forces
+     */
+    public void clearTemporaryForces() {
+        temporaryForces.clear();
+    }
+
+    /**
+     * Calculate the resultant force from all forces acting on this body
+     */
+    private Vector getResultantForce() {
+        double x = 0;
+        double y = 0;
+
+        for (Vector force : forces) {
+            x += force.x();
+            y += force.y();
+        }
+
+        if (temporaryForces != null) {
+            for (Vector force : temporaryForces) {
+                x += force.x();
+                y += force.y();
+            }
+        }
+
+        return new Vector(x, y);
+    }
+
+    @Override
+    public Vector getPosition() {
+        return position;
+    }
+
+    public void setPosition(Vector position) {
+        this.position = position;
+    }
+
+    public Vector getVelocity() {
+        return velocity;
+    }
+
+    public void setVelocity(Vector velocity) {
+        this.velocity = velocity;
+    }
+
+    public double getMass() {
+        return mass;
+    }
+
+    public Vector getPreviousPosition() {
+        return previousPosition;
+    }
+
+    public void setPreviousPosition(Vector previousPosition) {
+        this.previousPosition = previousPosition;
+    }
+
+    public Vector getPreviousVelocity() {
+        return previousVelocity;
+    }
+
+    public void setPreviousVelocity(Vector previousVelocity) {
+        this.previousVelocity = previousVelocity;
+    }
+
+    @Override
+    public double getCoefficientOfRestitution() {
+        return coefficientOfRestitution;
+    }
+
+    public void setCoefficientOfRestitution(double coefficientOfRestitution) {
+        this.coefficientOfRestitution = coefficientOfRestitution;
+    }
+
+    public double getDragCoefficient() {
+        return dragCoefficient;
+    }
+
+    public void setDragCoefficient(double dragCoefficient) {
+        this.dragCoefficient = dragCoefficient;
+    }
+}

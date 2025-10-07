@@ -6,28 +6,17 @@ import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.rendering.Camera;
 
 import java.awt.*;
-import java.util.Collections;
 
 /**
  * Ground body representing the floor of the simulation
  * Static body with AABB collision shape
  */
-public class Ground extends RigidBody {
+public class Ground extends StaticBody {
     private final double width;
     private final double height;
 
     public Ground(double x, double y, double width, double height) {
-        // Static body: infinite mass (represented as Double.MAX_VALUE), no velocity
-        super(
-                new Vector(x, y),
-                Vector.ZERO,
-                Collections.emptyList(),
-                Double.MAX_VALUE,
-                true,  // isStatic
-                1.0,   // coefficient of restitution (full bounce)
-                0.0,   // no drag
-                null
-        );
+        super(new Vector(x, y), 1.0);
         this.width = width;
         this.height = height;
     }

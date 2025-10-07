@@ -10,11 +10,11 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.util.List;
 
-public class Ball extends RigidBody {
+public class Ball extends DynamicBody {
     private static final double RADIUS = 5.0; // radius in world units
 
     public Ball(Vector position, Vector vector, List<Vector> forces, double coefficientOfRestitution, double dragCoefficient) {
-        super(position, vector, forces, 1, false, coefficientOfRestitution, dragCoefficient, null);
+        super(position, vector, forces, 1.0, coefficientOfRestitution, dragCoefficient);
     }
 
     @Override
