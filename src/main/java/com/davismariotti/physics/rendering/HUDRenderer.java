@@ -1,5 +1,6 @@
 package com.davismariotti.physics.rendering;
 
+import com.davismariotti.physics.constraints.CollisionMetrics;
 import com.davismariotti.physics.core.PhysicsConfig;
 
 import java.awt.*;
@@ -13,12 +14,14 @@ public class HUDRenderer implements RenderComponent {
     private final int windowHeight;
 
     private double fps;
+    private CollisionMetrics collisionMetrics;
 
     public HUDRenderer(PhysicsConfig config, int windowWidth, int windowHeight) {
         this.config = config;
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
         this.fps = 0.0;
+        this.collisionMetrics = null;
     }
 
     @Override
@@ -26,18 +29,41 @@ public class HUDRenderer implements RenderComponent {
         graphics.setColor(Color.WHITE);
         graphics.setFont(new Font("Monospaced", Font.PLAIN, 14));
 
-        String fpsText = String.format("FPS: %.1f", fps);
-        String restitutionText = String.format("Restitution: %.2f", config.getCoefficientOfRestitution());
-        String dragText = String.format("Drag: %.3f", config.getDragCoefficient());
-
-        int textX = windowWidth - 150;
+        int textX = windowWidth - 200;
         int textY = 20;
-        graphics.drawString(fpsText, textX, textY);
-        graphics.drawString(restitutionText, textX, textY + 20);
-        graphics.drawString(dragText, textX, textY + 40);
+        int lineHeight = 20;
+        int line = 0;
+
+        // Performance metrics
+        graphics.drawString(String.format("FPS: %.1f", fps), textX, textY + (line++ * lineHeight));
+        graphics.drawString(String.format("Restitution: %.2f", config.getCoefficientOfRestitution()), textX, textY + (line++ * lineHeight));
+        graphics.drawString(String.format("Drag: %.3f", config.getDragCoefficient()), textX, textY + (line++ * lineHeight));
+
+        // Collision metrics (if available)
+        if (collisionMetrics != null) {
+            line++; // Blank line
+            graphics.drawString("=== Collisions ===", textX, textY + (line++ * lineHeight));
+            graphics.drawString(String.format("Total: %d", collisionMetrics.getTotalCollisions()), textX, textY + (line++ * lineHeight));
+            graphics.drawString(String.format("Impulses: %d", collisionMetrics.getImpulseApplications()), textX, textY + (line++ * lineHeight));
+            graphics.drawString(String.format("Resting: %d", collisionMetrics.getRestingContacts()), textX, textY + (line++ * lineHeight));
+            graphics.drawString(String.format("Max Pen: %.3f", collisionMetrics.getMaxPenetration()), textX, textY + (line++ * lineHeight));
+
+            // Highlight clusters in red if detected
+            if (collisionMetrics.getClusteredBalls() >= 3) {
+                graphics.setColor(Color.RED);
+                graphics.drawString(String.format("!!! CLUSTER: %d balls !!!", collisionMetrics.getClusteredBalls()), textX, textY + (line++ * lineHeight));
+                graphics.setColor(Color.WHITE);
+            } else {
+                graphics.drawString("Cluster: None", textX, textY + (line++ * lineHeight));
+            }
+        }
     }
 
     public void setFps(double fps) {
         this.fps = fps;
+    }
+
+    public void setCollisionMetrics(CollisionMetrics metrics) {
+        this.collisionMetrics = metrics;
     }
 }

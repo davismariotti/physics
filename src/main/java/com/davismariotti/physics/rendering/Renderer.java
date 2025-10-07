@@ -19,12 +19,14 @@ public class Renderer {
     private final List<RenderComponent> components;
     private final HUDRenderer hudRenderer;
     private final Camera camera;
+    private final PhysicsSimulator simulator;
 
     public Renderer(int windowWidth, int windowHeight, PhysicsSimulator simulator, WorldInteractionSystem interactionSystem) {
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
         this.backBuffer = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_RGB);
         this.components = new ArrayList<>();
+        this.simulator = simulator;
 
         // Create camera for world/screen coordinate conversion
         this.camera = new Camera(Game.SCALE, windowHeight);
@@ -49,6 +51,9 @@ public class Renderer {
      * @param insets the window insets
      */
     public void render(Graphics targetGraphics, Insets insets) {
+        // Update HUD with latest collision metrics
+        hudRenderer.setCollisionMetrics(simulator.getDynamicCollisionConstraint().getMetrics());
+
         Graphics2D graphics = (Graphics2D) backBuffer.getGraphics();
 
         // Clear background
