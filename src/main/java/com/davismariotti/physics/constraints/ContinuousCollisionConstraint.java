@@ -19,12 +19,19 @@ import java.util.List;
 public class ContinuousCollisionConstraint implements Constraint {
     private final List<StaticBody> staticBodies;
     private final Vector gravity;
+    private final double restingVelocityThreshold;
     private static final int MAX_RECURSION_DEPTH = 4;
     private static final double TIME_EPSILON = 1e-6;
 
-    public ContinuousCollisionConstraint(List<StaticBody> staticBodies, Vector gravity) {
+    public ContinuousCollisionConstraint(List<StaticBody> staticBodies, Vector gravity, double restingVelocityThreshold) {
         this.staticBodies = staticBodies;
         this.gravity = gravity;
+        this.restingVelocityThreshold = restingVelocityThreshold;
+    }
+
+    // Legacy constructor for backward compatibility
+    public ContinuousCollisionConstraint(List<StaticBody> staticBodies, Vector gravity) {
+        this(staticBodies, gravity, 0.5);
     }
 
     @Override
@@ -140,7 +147,7 @@ public class ContinuousCollisionConstraint implements Constraint {
 
     /**
      * Apply impulse to dynamic body for collision with static body
-     * Reflects velocity along normal with restitution
+     * Reflects velocity along normal with restitution, then applies friction
      */
     private void applyImpulse(DynamicBody dynamic, Vector normal, double restitution) {
         Vector velocity = dynamic.getVelocity();
@@ -150,20 +157,84 @@ public class ContinuousCollisionConstraint implements Constraint {
 
         // Only apply impulse if moving into surface
         if (velAlongNormal < 0) {
-            // Reflect velocity
-            Vector reflection = new Vector(
-                    velocity.x() - 2 * velAlongNormal * normal.x(),
-                    velocity.y() - 2 * velAlongNormal * normal.y()
+            // Use resting contact threshold: if velocity is very low, treat as resting (no bounce)
+            double effectiveRestitution = Math.abs(velAlongNormal) < restingVelocityThreshold ? 0.0 : restitution;
+
+            // Calculate normal impulse magnitude
+            double normalImpulseMagnitude = -(1 + effectiveRestitution) * velAlongNormal;
+
+            // Apply normal impulse
+            Vector normalImpulse = new Vector(
+                    normal.x() * normalImpulseMagnitude,
+                    normal.y() * normalImpulseMagnitude
             );
 
-            // Apply restitution
-            reflection = new Vector(
-                    reflection.x() * restitution,
-                    reflection.y() * restitution
+            Vector newVelocity = new Vector(
+                    velocity.x() + normalImpulse.x() / dynamic.getMass(),
+                    velocity.y() + normalImpulse.y() / dynamic.getMass()
             );
 
-            dynamic.setVelocity(reflection);
+            dynamic.setVelocity(newVelocity);
+
+            // Apply friction ONLY if it's a resting/sliding contact (low restitution)
+            // Don't apply friction during bounces - the ball isn't actually sliding
+            if (effectiveRestitution < 0.1) {
+                applyFriction(dynamic, normal, normalImpulseMagnitude, velocity);
+            }
         }
+    }
+
+    /**
+     * Apply friction impulse perpendicular to collision normal
+     * Uses pre-impulse velocity to calculate friction correctly
+     */
+    private void applyFriction(DynamicBody dynamic, Vector normal, double normalImpulseMagnitude, Vector preImpulseVelocity) {
+        // Calculate tangent vector from PRE-IMPULSE velocity (before bounce)
+        double velDotNormal = preImpulseVelocity.x() * normal.x() + preImpulseVelocity.y() * normal.y();
+        Vector tangent = new Vector(
+                preImpulseVelocity.x() - velDotNormal * normal.x(),
+                preImpulseVelocity.y() - velDotNormal * normal.y()
+        );
+
+        double tangentMagnitude = Math.sqrt(tangent.x() * tangent.x() + tangent.y() * tangent.y());
+
+        if (tangentMagnitude < 1e-6) {
+            return; // No tangential velocity, no friction needed
+        }
+
+        // Normalize tangent
+        tangent = new Vector(tangent.x() / tangentMagnitude, tangent.y() / tangentMagnitude);
+
+        // Get friction coefficients
+        double staticFriction = dynamic.getStaticFriction();
+        double dynamicFriction = dynamic.getDynamicFriction();
+
+        // Coulomb friction: friction force is proportional to normal force
+        // Maximum friction impulse is capped by μ * normal_impulse
+        double maxFrictionImpulse = normalImpulseMagnitude * dynamicFriction;
+
+        // Calculate desired friction impulse to reduce tangential velocity
+        double mass = dynamic.getMass();
+        double velAlongTangent = preImpulseVelocity.x() * tangent.x() + preImpulseVelocity.y() * tangent.y();
+        double desiredFrictionImpulse = -velAlongTangent * mass;
+
+        // Clamp by Coulomb limit
+        double frictionImpulseMagnitude = Math.signum(desiredFrictionImpulse) *
+                                          Math.min(Math.abs(desiredFrictionImpulse), maxFrictionImpulse);
+
+        Vector frictionImpulse = new Vector(
+                tangent.x() * frictionImpulseMagnitude,
+                tangent.y() * frictionImpulseMagnitude
+        );
+
+        // Apply friction impulse
+        Vector currentVelocity = dynamic.getVelocity();
+        Vector newVelocity = new Vector(
+                currentVelocity.x() + frictionImpulse.x() / mass,
+                currentVelocity.y() + frictionImpulse.y() / mass
+        );
+
+        dynamic.setVelocity(newVelocity);
     }
 
     /**
@@ -187,20 +258,30 @@ public class ContinuousCollisionConstraint implements Constraint {
             );
             dynamic.setPosition(dynamic.getPosition().add(correction));
 
-            // Reflect velocity
-            Vector reflection = new Vector(
-                    velocity.x() - 2 * velAlongNormal * normal.x(),
-                    velocity.y() - 2 * velAlongNormal * normal.y()
-            );
-
-            // Apply restitution
+            // Use resting contact threshold
             double restitution = dynamic.getCoefficientOfRestitution();
-            reflection = new Vector(
-                    reflection.x() * restitution,
-                    reflection.y() * restitution
+            double effectiveRestitution = Math.abs(velAlongNormal) < restingVelocityThreshold ? 0.0 : restitution;
+
+            // Calculate normal impulse magnitude
+            double normalImpulseMagnitude = -(1 + effectiveRestitution) * velAlongNormal;
+
+            // Apply normal impulse
+            Vector normalImpulse = new Vector(
+                    normal.x() * normalImpulseMagnitude,
+                    normal.y() * normalImpulseMagnitude
             );
 
-            dynamic.setVelocity(reflection);
+            Vector newVelocity = new Vector(
+                    velocity.x() + normalImpulse.x() / dynamic.getMass(),
+                    velocity.y() + normalImpulse.y() / dynamic.getMass()
+            );
+
+            dynamic.setVelocity(newVelocity);
+
+            // Apply friction only for resting contacts
+            if (effectiveRestitution < 0.1) {
+                applyFriction(dynamic, normal, normalImpulseMagnitude, velocity);
+            }
         } else if (penetration > 0) {
             // Penetrating but moving away - just correct position without changing velocity
             Vector correction = new Vector(

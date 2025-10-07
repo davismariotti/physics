@@ -18,19 +18,17 @@ public abstract non-sealed class DynamicBody implements RigidBody {
     private Vector previousVelocity;
 
     private List<Vector> forces;
-    private double coefficientOfRestitution;
-    private double dragCoefficient;
+    private MaterialProperties material;
 
     private transient List<Vector> temporaryForces;
 
     public DynamicBody(Vector position, Vector velocity, List<Vector> forces, double mass,
-                       double coefficientOfRestitution, double dragCoefficient) {
+                       MaterialProperties material) {
         this.position = position;
         this.velocity = velocity;
         this.mass = mass;
         this.forces = forces;
-        this.coefficientOfRestitution = coefficientOfRestitution;
-        this.dragCoefficient = dragCoefficient;
+        this.material = material;
         this.temporaryForces = new ArrayList<>();
 
         this.previousPosition = position;
@@ -135,20 +133,46 @@ public abstract non-sealed class DynamicBody implements RigidBody {
         this.previousVelocity = previousVelocity;
     }
 
+    public MaterialProperties getMaterial() {
+        return material;
+    }
+
+    public void setMaterial(MaterialProperties material) {
+        this.material = material;
+    }
+
     @Override
     public double getCoefficientOfRestitution() {
-        return coefficientOfRestitution;
+        return material.coefficientOfRestitution();
     }
 
     public void setCoefficientOfRestitution(double coefficientOfRestitution) {
-        this.coefficientOfRestitution = coefficientOfRestitution;
+        this.material = new MaterialProperties(
+                coefficientOfRestitution,
+                material.dragCoefficient(),
+                material.staticFriction(),
+                material.dynamicFriction()
+        );
     }
 
     public double getDragCoefficient() {
-        return dragCoefficient;
+        return material.dragCoefficient();
     }
 
     public void setDragCoefficient(double dragCoefficient) {
-        this.dragCoefficient = dragCoefficient;
+        this.material = new MaterialProperties(
+                material.coefficientOfRestitution(),
+                dragCoefficient,
+                material.staticFriction(),
+                material.dynamicFriction()
+        );
+    }
+
+    public double getStaticFriction() {
+        return material.staticFriction();
+    }
+
+    public double getDynamicFriction() {
+        return material.dynamicFriction();
     }
 }

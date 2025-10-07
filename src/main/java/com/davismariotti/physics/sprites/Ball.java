@@ -13,8 +13,13 @@ import java.util.List;
 public class Ball extends DynamicBody {
     private static final double RADIUS = 5.0; // radius in world units
 
+    public Ball(Vector position, Vector vector, List<Vector> forces, MaterialProperties material) {
+        super(position, vector, forces, 1.0, material);
+    }
+
+    // Legacy constructor for backward compatibility
     public Ball(Vector position, Vector vector, List<Vector> forces, double coefficientOfRestitution, double dragCoefficient) {
-        super(position, vector, forces, 1.0, coefficientOfRestitution, dragCoefficient);
+        this(position, vector, forces, new MaterialProperties(coefficientOfRestitution, dragCoefficient, 0.3, 0.2));
     }
 
     @Override

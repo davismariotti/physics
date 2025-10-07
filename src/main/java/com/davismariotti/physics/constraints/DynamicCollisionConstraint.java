@@ -109,7 +109,7 @@ public class DynamicCollisionConstraint implements Constraint {
     }
 
     /**
-     * Apply two-body impulse for momentum exchange
+     * Apply two-body impulse for momentum exchange with friction
      */
     private void applyDynamicImpulse(DynamicBody bodyA, DynamicBody bodyB, Vector normal, double restitution) {
         Vector velA = bodyA.getVelocity();
@@ -124,13 +124,13 @@ public class DynamicCollisionConstraint implements Constraint {
             return;
         }
 
-        // Calculate impulse scalar
+        // Calculate normal impulse scalar
         double massA = bodyA.getMass();
         double massB = bodyB.getMass();
         double impulseScalar = -(1 + restitution) * velAlongNormal;
         impulseScalar /= (1 / massA + 1 / massB);
 
-        // Apply impulse
+        // Apply normal impulse
         Vector impulse = new Vector(normal.x() * impulseScalar, normal.y() * impulseScalar);
 
         // Impulse pushes A backward (opposite to normal) and B forward (along normal)
@@ -141,6 +141,75 @@ public class DynamicCollisionConstraint implements Constraint {
         Vector newVelB = new Vector(
                 velB.x() + impulse.x() / massB,
                 velB.y() + impulse.y() / massB
+        );
+
+        bodyA.setVelocity(newVelA);
+        bodyB.setVelocity(newVelB);
+
+        // Apply friction only for low restitution (sliding) contacts
+        // Skip friction for bouncy collisions
+        if (restitution < 0.3) {
+            applyDynamicFriction(bodyA, bodyB, normal, impulseScalar, relVel);
+        }
+    }
+
+    /**
+     * Apply friction between two dynamic bodies
+     * Uses pre-impulse relative velocity for correct friction calculation
+     */
+    private void applyDynamicFriction(DynamicBody bodyA, DynamicBody bodyB, Vector normal,
+                                      double normalImpulseMagnitude, Vector preImpulseRelVel) {
+        // Calculate tangent vector from PRE-IMPULSE relative velocity
+        double velAlongNormal = preImpulseRelVel.x() * normal.x() + preImpulseRelVel.y() * normal.y();
+        Vector tangent = new Vector(
+                preImpulseRelVel.x() - velAlongNormal * normal.x(),
+                preImpulseRelVel.y() - velAlongNormal * normal.y()
+        );
+
+        double tangentMagnitude = Math.sqrt(tangent.x() * tangent.x() + tangent.y() * tangent.y());
+
+        if (tangentMagnitude < 1e-6) {
+            return; // No tangential velocity
+        }
+
+        // Normalize tangent
+        tangent = new Vector(tangent.x() / tangentMagnitude, tangent.y() / tangentMagnitude);
+
+        // Combine friction coefficients using Pythagorean theorem
+        double dynamicFriction = Math.sqrt(
+                bodyA.getDynamicFriction() * bodyA.getDynamicFriction() +
+                bodyB.getDynamicFriction() * bodyB.getDynamicFriction()
+        );
+
+        // Coulomb friction: clamp by normal force
+        double maxFrictionImpulse = Math.abs(normalImpulseMagnitude) * dynamicFriction;
+
+        // Calculate desired friction to reduce tangential velocity
+        double massA = bodyA.getMass();
+        double massB = bodyB.getMass();
+        double velAlongTangent = preImpulseRelVel.x() * tangent.x() + preImpulseRelVel.y() * tangent.y();
+        double desiredFrictionImpulse = -velAlongTangent / (1 / massA + 1 / massB);
+
+        // Clamp by Coulomb limit
+        double frictionImpulseMagnitude = Math.signum(desiredFrictionImpulse) *
+                                          Math.min(Math.abs(desiredFrictionImpulse), maxFrictionImpulse);
+
+        Vector frictionImpulse = new Vector(
+                tangent.x() * frictionImpulseMagnitude,
+                tangent.y() * frictionImpulseMagnitude
+        );
+
+        // Apply friction impulse to both bodies
+        Vector velA = bodyA.getVelocity();
+        Vector velB = bodyB.getVelocity();
+
+        Vector newVelA = new Vector(
+                velA.x() - frictionImpulse.x() / massA,
+                velA.y() - frictionImpulse.y() / massA
+        );
+        Vector newVelB = new Vector(
+                velB.x() + frictionImpulse.x() / massB,
+                velB.y() + frictionImpulse.y() / massB
         );
 
         bodyA.setVelocity(newVelA);

@@ -8,11 +8,16 @@ import com.davismariotti.physics.kinematics.Vector;
  */
 public abstract non-sealed class StaticBody implements RigidBody {
     private final Vector position;
-    private final double coefficientOfRestitution;
+    private final MaterialProperties material;
 
-    public StaticBody(Vector position, double coefficientOfRestitution) {
+    public StaticBody(Vector position, MaterialProperties material) {
         this.position = position;
-        this.coefficientOfRestitution = coefficientOfRestitution;
+        this.material = material;
+    }
+
+    // Legacy constructor for backward compatibility
+    public StaticBody(Vector position, double coefficientOfRestitution) {
+        this(position, new MaterialProperties(coefficientOfRestitution, 0.0, 0.5, 0.35));
     }
 
     @Override
@@ -22,6 +27,10 @@ public abstract non-sealed class StaticBody implements RigidBody {
 
     @Override
     public double getCoefficientOfRestitution() {
-        return coefficientOfRestitution;
+        return material.coefficientOfRestitution();
+    }
+
+    public MaterialProperties getMaterial() {
+        return material;
     }
 }
