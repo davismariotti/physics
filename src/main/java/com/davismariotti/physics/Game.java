@@ -179,17 +179,33 @@ public class Game extends JFrame {
         double minY = groundHeight + verticalPadding;
         double maxY = Math.max(minY, worldHeight - verticalPadding);
 
-        for (int i = 0; i < count; i++) {
-            double x = minX + (maxX - minX) * random.nextDouble();
-            double y = minY + (maxY - minY) * random.nextDouble();
+        double usableWidth = Math.max(0, maxX - minX);
+        double leftQuarterMax = minX + usableWidth * 0.25;
+        double rightQuarterMin = maxX - usableWidth * 0.25;
 
-            Ball ball = new Ball(
-                    new Vector(x, y),
-                    Vector.ZERO,
-                    List.of(config.getGravity()),
-                    config.getDefaultMaterial()
-            );
-            simulator.addBody(ball);
+        int leftCount = count / 2;
+        int rightCount = count / 2;
+
+        for (int i = 0; i < leftCount; i++) {
+            double x = minX + (leftQuarterMax - minX) * random.nextDouble();
+            double y = minY + (maxY - minY) * random.nextDouble();
+            spawnBall(config, x, y);
         }
+
+        for (int i = 0; i < rightCount; i++) {
+            double x = rightQuarterMin + (maxX - rightQuarterMin) * random.nextDouble();
+            double y = minY + (maxY - minY) * random.nextDouble();
+            spawnBall(config, x, y);
+        }
+    }
+
+    private void spawnBall(PhysicsConfig config, double x, double y) {
+        Ball ball = new Ball(
+                new Vector(x, y),
+                Vector.ZERO,
+                List.of(config.getGravity()),
+                config.getDefaultMaterial()
+        );
+        simulator.addBody(ball);
     }
 }
