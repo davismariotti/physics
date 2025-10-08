@@ -22,6 +22,10 @@ public abstract non-sealed class DynamicBody implements RigidBody {
 
     private transient List<Vector> temporaryForces;
 
+    // Sleep state for performance optimization
+    private boolean sleeping = false;
+    private int restingFrames = 0;
+
     public DynamicBody(Vector position, Vector velocity, List<Vector> forces, double mass,
                        MaterialProperties material) {
         this.position = position;
@@ -174,5 +178,56 @@ public abstract non-sealed class DynamicBody implements RigidBody {
 
     public double getDynamicFriction() {
         return material.dynamicFriction();
+    }
+
+    /**
+     * Check if this body is sleeping (inactive for performance)
+     */
+    public boolean isSleeping() {
+        return sleeping;
+    }
+
+    /**
+     * Put this body to sleep (skip physics until woken)
+     */
+    public void sleep() {
+        this.sleeping = true;
+        // Zero out velocity when sleeping to prevent drift
+        this.velocity = Vector.ZERO;
+    }
+
+    /**
+     * Wake this body (resume normal physics)
+     */
+    public void wake() {
+        this.sleeping = false;
+        this.restingFrames = 0;
+    }
+
+    /**
+     * Update sleep state based on velocity
+     * Should be called after physics update
+     *
+     * @param velocityThreshold velocity below which body can sleep
+     * @param framesRequired consecutive low-velocity frames required to sleep
+     */
+    public void updateSleepState(double velocityThreshold, int framesRequired) {
+        if (sleeping) {
+            // Already sleeping, stay asleep until explicitly woken
+            return;
+        }
+
+        // Calculate velocity magnitude
+        double speed = Math.sqrt(velocity.x() * velocity.x() + velocity.y() * velocity.y());
+
+        if (speed < velocityThreshold) {
+            restingFrames++;
+            if (restingFrames >= framesRequired) {
+                sleep();
+            }
+        } else {
+            // Moving too fast, reset counter
+            restingFrames = 0;
+        }
     }
 }

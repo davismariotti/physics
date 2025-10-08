@@ -41,6 +41,11 @@ public class ContinuousCollisionConstraint implements Constraint {
             return;
         }
 
+        // Skip sleeping bodies
+        if (dynamic.isSleeping()) {
+            return;
+        }
+
         // Check for penetration using discrete detection
         StaticBody collidingStatic = null;
         CollisionResult discreteResult = null;
@@ -52,6 +57,11 @@ public class ContinuousCollisionConstraint implements Constraint {
             );
 
             if (result.hasCollision()) {
+                // Wake the dynamic body if it's colliding with static
+                if (dynamic.isSleeping()) {
+                    dynamic.wake();
+                }
+
                 collidingStatic = staticBody;
                 discreteResult = result;
                 break;  // Handle one collision at a time

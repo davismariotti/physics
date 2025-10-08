@@ -98,6 +98,11 @@ public class PhysicsSimulator {
         for (int step = 0; step < substeps; step++) {
             // Update all dynamic bodies for this substep
             for (DynamicBody body : dynamicBodies) {
+                // Skip sleeping bodies entirely
+                if (body.isSleeping()) {
+                    continue;
+                }
+
                 // Store previous state for TOI calculation
                 body.storePreviousState();
 
@@ -121,6 +126,13 @@ public class PhysicsSimulator {
             // Apply dynamic collision constraint (ball-to-ball collisions)
             // Called once per substep, not per body
             dynamicCollisionConstraint.applyAll(substepDelta);
+        }
+
+        // Update sleep states after all physics (if sleeping enabled)
+        if (config.isUseSleeping()) {
+            for (DynamicBody body : dynamicBodies) {
+                body.updateSleepState(config.getSleepVelocityThreshold(), config.getSleepFramesRequired());
+            }
         }
     }
 

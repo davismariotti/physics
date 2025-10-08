@@ -12,6 +12,9 @@ public class PhysicsConfig {
     private double restingVelocityThreshold;  // Velocity below which restitution = 0
     private boolean useSpatialPartitioning;   // Enable spatial grid for broad-phase collision
     private double gridCellSize;              // Size of spatial grid cells (in world units)
+    private boolean useSleeping;              // Enable sleeping for settled bodies
+    private double sleepVelocityThreshold;    // Velocity below which bodies can sleep
+    private int sleepFramesRequired;          // Consecutive low-velocity frames required to sleep
 
     public PhysicsConfig() {
         this.gravity = new Vector(0, -9.8);
@@ -22,6 +25,9 @@ public class PhysicsConfig {
         this.restingVelocityThreshold = 0.5;
         this.useSpatialPartitioning = true;   // Enable by default for performance
         this.gridCellSize = 0.3;              // 1.2x ball diameter (ball radius = 0.25)
+        this.useSleeping = true;              // Enable by default for performance
+        this.sleepVelocityThreshold = 0.1;    // Sleep when speed < 0.1
+        this.sleepFramesRequired = 60;        // Require 60 frames (~1 second) of rest
     }
 
     public Vector getGravity() {
@@ -113,5 +119,29 @@ public class PhysicsConfig {
 
     public void setGridCellSize(double gridCellSize) {
         this.gridCellSize = gridCellSize;
+    }
+
+    public boolean isUseSleeping() {
+        return useSleeping;
+    }
+
+    public void setUseSleeping(boolean useSleeping) {
+        this.useSleeping = useSleeping;
+    }
+
+    public double getSleepVelocityThreshold() {
+        return sleepVelocityThreshold;
+    }
+
+    public void setSleepVelocityThreshold(double sleepVelocityThreshold) {
+        this.sleepVelocityThreshold = sleepVelocityThreshold;
+    }
+
+    public int getSleepFramesRequired() {
+        return sleepFramesRequired;
+    }
+
+    public void setSleepFramesRequired(int sleepFramesRequired) {
+        this.sleepFramesRequired = sleepFramesRequired;
     }
 }

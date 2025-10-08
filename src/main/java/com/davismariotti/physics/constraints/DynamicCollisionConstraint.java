@@ -107,9 +107,11 @@ public class DynamicCollisionConstraint implements Constraint {
         // Clear and rebuild spatial grid
         spatialGrid.clear();
 
-        // Insert all bodies into grid
+        // Insert only awake (non-sleeping) bodies into grid
         for (DynamicBody body : dynamicBodies) {
-            spatialGrid.insert(body);
+            if (!body.isSleeping()) {
+                spatialGrid.insert(body);
+            }
         }
 
         // Track checked pairs to avoid duplicates
@@ -155,6 +157,14 @@ public class DynamicCollisionConstraint implements Constraint {
         );
 
         if (result.hasCollision()) {
+            // Wake both bodies if either is sleeping
+            if (bodyA.isSleeping()) {
+                bodyA.wake();
+            }
+            if (bodyB.isSleeping()) {
+                bodyB.wake();
+            }
+
             // Check if velocities are separating - if so, skip resolution
             Vector velA = bodyA.getVelocity();
             Vector velB = bodyB.getVelocity();

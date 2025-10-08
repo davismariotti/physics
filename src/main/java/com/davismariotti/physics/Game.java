@@ -157,9 +157,11 @@ public class Game extends JFrame {
             frameCounter++;
             if (frameCounter % 100 == 0) {
                 String gridStats = simulator.getDynamicCollisionConstraint().getSpatialGridStats();
-                int bodyCount = simulator.getDynamicBodies().size();
-                System.out.printf("Frame %d: %d bodies, FPS=%.1f, %s%n",
-                        frameCounter, bodyCount, actualFps, gridStats);
+                int totalBodies = simulator.getDynamicBodies().size();
+                int sleepingBodies = (int) simulator.getDynamicBodies().stream().filter(b -> b.isSleeping()).count();
+                int awakeBodies = totalBodies - sleepingBodies;
+                System.out.printf("Frame %d: %d total (%d awake, %d sleeping), FPS=%.1f, %s%n",
+                        frameCounter, totalBodies, awakeBodies, sleepingBodies, actualFps, gridStats);
             }
         }
 
