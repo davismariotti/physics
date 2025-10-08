@@ -22,6 +22,7 @@ public class PhysicsSimulator {
     private final List<Force> globalForces;
     private final PhysicsConfig config;
     private final DynamicCollisionConstraint dynamicCollisionConstraint;
+    private double worldMinX, worldMaxX, worldMinY, worldMaxY;
 
     public PhysicsSimulator(PhysicsConfig config) {
         this.dynamicBodies = new ArrayList<>();
@@ -36,6 +37,29 @@ public class PhysicsSimulator {
 
         // Set up dynamic collision constraint (handles ball-to-ball collisions)
         this.dynamicCollisionConstraint = new DynamicCollisionConstraint(dynamicBodies, config.getGravity());
+
+        // World bounds will be set via setWorldBounds()
+        this.worldMinX = 0;
+        this.worldMaxX = 100;
+        this.worldMinY = 0;
+        this.worldMaxY = 80;
+    }
+
+    /**
+     * Set world bounds for spatial partitioning
+     * Should be called after PhysicsSimulator creation with actual game dimensions
+     */
+    public void setWorldBounds(double minX, double maxX, double minY, double maxY) {
+        this.worldMinX = minX;
+        this.worldMaxX = maxX;
+        this.worldMinY = minY;
+        this.worldMaxY = maxY;
+
+        // Update spatial partitioning if enabled
+        if (config.isUseSpatialPartitioning()) {
+            dynamicCollisionConstraint.enableSpatialPartitioning(
+                    worldMinX, worldMaxX, worldMinY, worldMaxY, config.getGridCellSize());
+        }
     }
 
     public void addBody(RigidBody body) {

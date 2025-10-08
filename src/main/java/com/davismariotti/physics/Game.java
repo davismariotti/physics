@@ -57,6 +57,11 @@ public class Game extends JFrame {
         // Create physics simulator
         simulator = new PhysicsSimulator(config);
 
+        // Set world bounds for spatial partitioning
+        double worldWidth = windowWidth / SCALE;
+        double worldHeight = windowHeight / SCALE;
+        simulator.setWorldBounds(0, worldWidth, 0, worldHeight);
+
         // Create ground (5% of screen height)
         double groundHeight = (windowHeight / SCALE) * 0.05;
         double groundWidth = windowWidth / SCALE;

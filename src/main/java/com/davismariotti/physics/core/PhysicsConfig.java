@@ -10,6 +10,8 @@ public class PhysicsConfig {
     private MaterialProperties defaultMaterial;
     private int substeps;
     private double restingVelocityThreshold;  // Velocity below which restitution = 0
+    private boolean useSpatialPartitioning;   // Enable spatial grid for broad-phase collision
+    private double gridCellSize;              // Size of spatial grid cells (in world units)
 
     public PhysicsConfig() {
         this.gravity = new Vector(0, -9.8);
@@ -18,6 +20,8 @@ public class PhysicsConfig {
         this.defaultMaterial = MaterialProperties.DEFAULT;
         this.substeps = 4;
         this.restingVelocityThreshold = 0.5;
+        this.useSpatialPartitioning = true;   // Enable by default for performance
+        this.gridCellSize = 0.5;              // 2x ball radius (ball radius = 0.25)
     }
 
     public Vector getGravity() {
@@ -93,5 +97,21 @@ public class PhysicsConfig {
 
     public void setRestingVelocityThreshold(double restingVelocityThreshold) {
         this.restingVelocityThreshold = restingVelocityThreshold;
+    }
+
+    public boolean isUseSpatialPartitioning() {
+        return useSpatialPartitioning;
+    }
+
+    public void setUseSpatialPartitioning(boolean useSpatialPartitioning) {
+        this.useSpatialPartitioning = useSpatialPartitioning;
+    }
+
+    public double getGridCellSize() {
+        return gridCellSize;
+    }
+
+    public void setGridCellSize(double gridCellSize) {
+        this.gridCellSize = gridCellSize;
     }
 }

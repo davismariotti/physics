@@ -2,28 +2,60 @@ package com.davismariotti.physics.constraints;
 
 import com.davismariotti.physics.collision.CollisionDetector;
 import com.davismariotti.physics.collision.CollisionResult;
+import com.davismariotti.physics.collision.SpatialGrid;
 import com.davismariotti.physics.collision.TimeOfImpact;
 import com.davismariotti.physics.collision.TOISolver;
 import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.sprites.DynamicBody;
 import com.davismariotti.physics.sprites.RigidBody;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Continuous collision constraint for dynamic-dynamic collisions (ball vs ball)
  * Uses Time of Impact (TOI) detection and two-body momentum exchange
- * Currently suppressed - can be enabled via PhysicsConfig
+ * Optionally uses spatial partitioning for broad-phase collision detection
  */
 public class DynamicCollisionConstraint implements Constraint {
     private final List<DynamicBody> dynamicBodies;
     private final Vector gravity;
+    private SpatialGrid spatialGrid;
+    private boolean useSpatialPartitioning;
     private static final int MAX_RECURSION_DEPTH = 4;
     private static final double TIME_EPSILON = 1e-6;
 
     public DynamicCollisionConstraint(List<DynamicBody> dynamicBodies, Vector gravity) {
         this.dynamicBodies = dynamicBodies;
         this.gravity = gravity;
+        this.useSpatialPartitioning = false;
+        this.spatialGrid = null;
+    }
+
+    /**
+     * Enable spatial partitioning for broad-phase collision detection
+     * Recommended for > 50 objects
+     *
+     * @param worldMinX minimum X coordinate of world
+     * @param worldMaxX maximum X coordinate of world
+     * @param worldMinY minimum Y coordinate of world
+     * @param worldMaxY maximum Y coordinate of world
+     * @param cellSize grid cell size (should be ~2x object radius)
+     */
+    public void enableSpatialPartitioning(double worldMinX, double worldMaxX,
+                                         double worldMinY, double worldMaxY,
+                                         double cellSize) {
+        this.spatialGrid = new SpatialGrid(worldMinX, worldMaxX, worldMinY, worldMaxY, cellSize);
+        this.useSpatialPartitioning = true;
+    }
+
+    /**
+     * Disable spatial partitioning (use naive O(n²) collision detection)
+     */
+    public void disableSpatialPartitioning() {
+        this.useSpatialPartitioning = false;
+        this.spatialGrid = null;
     }
 
     @Override
@@ -37,31 +69,92 @@ public class DynamicCollisionConstraint implements Constraint {
      * Should be called once per substep, not per body
      */
     public void applyAll(double substepDelta) {
-        // Check all pairs of dynamic bodies
+        if (useSpatialPartitioning && spatialGrid != null) {
+            applyAllWithSpatialPartitioning(substepDelta);
+        } else {
+            applyAllNaive(substepDelta);
+        }
+    }
+
+    /**
+     * Naive O(n²) collision detection - checks all pairs
+     */
+    private void applyAllNaive(double substepDelta) {
         for (int i = 0; i < dynamicBodies.size(); i++) {
             for (int j = i + 1; j < dynamicBodies.size(); j++) {
                 DynamicBody bodyA = dynamicBodies.get(i);
                 DynamicBody bodyB = dynamicBodies.get(j);
 
-                // Check for penetration
-                CollisionResult result = CollisionDetector.checkCollision(
-                        bodyA.getCollider(),
-                        bodyB.getCollider()
-                );
+                checkAndResolveCollision(bodyA, bodyB, substepDelta);
+            }
+        }
+    }
 
-                if (result.hasCollision()) {
-                    // Check if velocities are separating - if so, skip resolution
-                    Vector velA = bodyA.getVelocity();
-                    Vector velB = bodyB.getVelocity();
-                    Vector relVel = new Vector(velB.x() - velA.x(), velB.y() - velA.y());
-                    Vector normal = result.normal();
-                    double velAlongNormal = relVel.x() * normal.x() + relVel.y() * normal.y();
+    /**
+     * Optimized O(n) collision detection using spatial partitioning
+     */
+    private void applyAllWithSpatialPartitioning(double substepDelta) {
+        // Clear and rebuild spatial grid
+        spatialGrid.clear();
 
-                    // Only resolve if approaching (velAlongNormal < 0)
-                    if (velAlongNormal < 0) {
-                        handleDynamicCollision(bodyA, bodyB, result, substepDelta, 0);
-                    }
+        // Insert all bodies into grid
+        for (DynamicBody body : dynamicBodies) {
+            spatialGrid.insert(body);
+        }
+
+        // Track checked pairs to avoid duplicates
+        Set<Long> checkedPairs = new HashSet<>();
+
+        // For each body, query nearby bodies and check collisions
+        for (int i = 0; i < dynamicBodies.size(); i++) {
+            DynamicBody bodyA = dynamicBodies.get(i);
+            List<DynamicBody> nearbyBodies = spatialGrid.queryNearby(bodyA);
+
+            for (DynamicBody bodyB : nearbyBodies) {
+                // Skip self-collision
+                if (bodyA == bodyB) {
+                    continue;
                 }
+
+                // Create unique pair ID to avoid duplicate checks
+                int idA = System.identityHashCode(bodyA);
+                int idB = System.identityHashCode(bodyB);
+                long pairId = (idA < idB) ?
+                        ((long) idA << 32) | (idB & 0xFFFFFFFFL) :
+                        ((long) idB << 32) | (idA & 0xFFFFFFFFL);
+
+                // Skip if already checked this pair
+                if (checkedPairs.contains(pairId)) {
+                    continue;
+                }
+                checkedPairs.add(pairId);
+
+                checkAndResolveCollision(bodyA, bodyB, substepDelta);
+            }
+        }
+    }
+
+    /**
+     * Check and resolve collision between two bodies
+     */
+    private void checkAndResolveCollision(DynamicBody bodyA, DynamicBody bodyB, double substepDelta) {
+        // Check for penetration
+        CollisionResult result = CollisionDetector.checkCollision(
+                bodyA.getCollider(),
+                bodyB.getCollider()
+        );
+
+        if (result.hasCollision()) {
+            // Check if velocities are separating - if so, skip resolution
+            Vector velA = bodyA.getVelocity();
+            Vector velB = bodyB.getVelocity();
+            Vector relVel = new Vector(velB.x() - velA.x(), velB.y() - velA.y());
+            Vector normal = result.normal();
+            double velAlongNormal = relVel.x() * normal.x() + relVel.y() * normal.y();
+
+            // Only resolve if approaching (velAlongNormal < 0)
+            if (velAlongNormal < 0) {
+                handleDynamicCollision(bodyA, bodyB, result, substepDelta, 0);
             }
         }
     }
