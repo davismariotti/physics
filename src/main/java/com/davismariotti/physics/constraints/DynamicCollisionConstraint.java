@@ -58,6 +58,16 @@ public class DynamicCollisionConstraint implements Constraint {
         this.spatialGrid = null;
     }
 
+    /**
+     * Get spatial grid statistics (for debugging)
+     */
+    public String getSpatialGridStats() {
+        if (spatialGrid != null && useSpatialPartitioning) {
+            return spatialGrid.getOccupancyStats();
+        }
+        return "Spatial partitioning disabled";
+    }
+
     @Override
     public void apply(RigidBody body, double epsilon) {
         // This constraint is applied differently - see applyAll() below

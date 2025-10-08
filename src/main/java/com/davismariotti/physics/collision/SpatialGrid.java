@@ -4,7 +4,9 @@ import com.davismariotti.physics.kinematics.Vector;
 import com.davismariotti.physics.sprites.DynamicBody;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Uniform spatial grid for broad-phase collision detection
@@ -12,6 +14,8 @@ import java.util.List;
  *
  * Performance: O(1) insertion, O(k) query where k is objects in nearby cells
  * vs O(n²) naive collision detection
+ *
+ * Uses HashMap for sparse storage - only allocates cells that contain objects
  */
 public class SpatialGrid {
     private final double cellSize;
@@ -22,8 +26,9 @@ public class SpatialGrid {
     private final double worldMaxX;
     private final double worldMaxY;
 
-    // Grid cells stored as flat array: cell[y * gridWidth + x]
-    private final List<List<DynamicBody>> cells;
+    // Grid cells stored as HashMap: only non-empty cells are allocated
+    // Key: cellIndex = y * gridWidth + x
+    private final Map<Integer, List<DynamicBody>> cells;
 
     /**
      * Create a spatial grid covering the specified world bounds
@@ -45,22 +50,16 @@ public class SpatialGrid {
         this.gridWidth = (int) Math.ceil((worldMaxX - worldMinX) / cellSize) + 1;
         this.gridHeight = (int) Math.ceil((worldMaxY - worldMinY) / cellSize) + 1;
 
-        // Pre-allocate all cells
-        int totalCells = gridWidth * gridHeight;
-        this.cells = new ArrayList<>(totalCells);
-        for (int i = 0; i < totalCells; i++) {
-            cells.add(new ArrayList<>());
-        }
+        // Use HashMap for sparse storage - only allocate non-empty cells
+        this.cells = new HashMap<>();
     }
 
     /**
      * Clear all cells (call at start of each frame)
-     * O(cells) operation - very fast, just clears ArrayLists
+     * O(occupied cells) operation - only clears non-empty cells
      */
     public void clear() {
-        for (List<DynamicBody> cell : cells) {
-            cell.clear();
-        }
+        cells.clear();
     }
 
     /**
@@ -91,7 +90,9 @@ public class SpatialGrid {
             for (int gx = minCellX; gx <= maxCellX; gx++) {
                 if (isValidCell(gx, gy)) {
                     int cellIndex = gy * gridWidth + gx;
-                    cells.get(cellIndex).add(body);
+                    // Get or create cell list
+                    List<DynamicBody> cell = cells.computeIfAbsent(cellIndex, k -> new ArrayList<>());
+                    cell.add(body);
                 }
             }
         }
@@ -127,7 +128,10 @@ public class SpatialGrid {
             for (int gx = minCellX; gx <= maxCellX; gx++) {
                 if (isValidCell(gx, gy)) {
                     int cellIndex = gy * gridWidth + gx;
-                    nearby.addAll(cells.get(cellIndex));
+                    List<DynamicBody> cell = cells.get(cellIndex);
+                    if (cell != null) {
+                        nearby.addAll(cell);
+                    }
                 }
             }
         }
@@ -161,9 +165,16 @@ public class SpatialGrid {
     }
 
     /**
-     * Get total number of cells in the grid
+     * Get total number of possible cells in the grid
      */
-    public int getCellCount() {
+    public int getTotalCellCount() {
+        return gridWidth * gridHeight;
+    }
+
+    /**
+     * Get number of occupied (non-empty) cells
+     */
+    public int getOccupiedCellCount() {
         return cells.size();
     }
 
@@ -173,5 +184,25 @@ public class SpatialGrid {
     public String getGridInfo() {
         return String.format("SpatialGrid[%d×%d cells, cellSize=%.2f, world=(%.1f,%.1f)-(%.1f,%.1f)]",
                 gridWidth, gridHeight, cellSize, worldMinX, worldMinY, worldMaxX, worldMaxY);
+    }
+
+    /**
+     * Get statistics about cell occupancy for performance analysis
+     */
+    public String getOccupancyStats() {
+        int maxOccupancy = 0;
+        int totalBodies = 0;
+
+        for (List<DynamicBody> cell : cells.values()) {
+            int size = cell.size();
+            maxOccupancy = Math.max(maxOccupancy, size);
+            totalBodies += size;
+        }
+
+        int occupiedCells = cells.size();
+        double avgOccupancy = occupiedCells > 0 ? (double) totalBodies / occupiedCells : 0;
+
+        return String.format("Grid occupancy: %d/%d cells used, avg=%.1f bodies/cell, max=%d bodies/cell",
+                occupiedCells, getTotalCellCount(), avgOccupancy, maxOccupancy);
     }
 }

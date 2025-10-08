@@ -38,6 +38,7 @@ public class Game extends JFrame {
     private final int fps = 100;
     private final int windowWidth = 1200;
     private final int windowHeight = 800;
+    private int frameCounter = 0;
 
     public static void main(String[] args) {
         Game game = new Game();
@@ -98,7 +99,7 @@ public class Game extends JFrame {
         renderer = new Renderer(windowWidth, windowHeight, simulator, interactionSystem);
 
         // Spawn initial batch of dynamic bodies for stress testing
-        spawnInitialBalls(config, groundHeight, 2000);
+        spawnInitialBalls(config, groundHeight, 5000);
 
         // Set up keyboard listener
         addKeyListener(new KeyListener() {
@@ -151,6 +152,15 @@ public class Game extends JFrame {
             long totalFrameTime = System.currentTimeMillis() - frameStart;
             double actualFps = totalFrameTime > 0 ? 1000.0 / totalFrameTime : fps;
             renderer.setActualFps(actualFps);
+
+            // Log spatial grid stats every 100 frames
+            frameCounter++;
+            if (frameCounter % 100 == 0) {
+                String gridStats = simulator.getDynamicCollisionConstraint().getSpatialGridStats();
+                int bodyCount = simulator.getDynamicBodies().size();
+                System.out.printf("Frame %d: %d bodies, FPS=%.1f, %s%n",
+                        frameCounter, bodyCount, actualFps, gridStats);
+            }
         }
 
         setVisible(false);

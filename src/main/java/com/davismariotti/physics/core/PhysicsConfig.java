@@ -21,7 +21,7 @@ public class PhysicsConfig {
         this.substeps = 4;
         this.restingVelocityThreshold = 0.5;
         this.useSpatialPartitioning = true;   // Enable by default for performance
-        this.gridCellSize = 0.5;              // 2x ball radius (ball radius = 0.25)
+        this.gridCellSize = 0.3;              // 1.2x ball diameter (ball radius = 0.25)
     }
 
     public Vector getGravity() {

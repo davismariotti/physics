@@ -18,8 +18,10 @@ class SpatialGridTest {
     void testGridCreation() {
         SpatialGrid grid = new SpatialGrid(0, 100, 0, 80, 1.0);
 
-        // Should create 101×81 cells (adding 1 for boundaries)
-        assertEquals(101 * 81, grid.getCellCount());
+        // Should create 101×81 possible cells (adding 1 for boundaries)
+        assertEquals(101 * 81, grid.getTotalCellCount());
+        // Initially no occupied cells
+        assertEquals(0, grid.getOccupiedCellCount());
 
         System.out.println(grid.getGridInfo());
     }

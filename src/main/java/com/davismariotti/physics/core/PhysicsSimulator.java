@@ -170,4 +170,8 @@ public class PhysicsSimulator {
     public List<StaticBody> getStaticBodies() {
         return staticBodies;
     }
+
+    public DynamicCollisionConstraint getDynamicCollisionConstraint() {
+        return dynamicCollisionConstraint;
+    }
 }
