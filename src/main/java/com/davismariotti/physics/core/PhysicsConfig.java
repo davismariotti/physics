@@ -15,19 +15,21 @@ public class PhysicsConfig {
     private boolean useSleeping;              // Enable sleeping for settled bodies
     private double sleepVelocityThreshold;    // Velocity below which bodies can sleep
     private int sleepFramesRequired;          // Consecutive low-velocity frames required to sleep
+    private int velocityIterations;           // Number of velocity solver iterations for stability
 
     public PhysicsConfig() {
         this.gravity = new Vector(0, -9.8);
         this.scale = 10.0;
         this.gameSpeed = 3.0;
         this.defaultMaterial = MaterialProperties.DEFAULT;
-        this.substeps = 4;
+        this.substeps = 6;
         this.restingVelocityThreshold = 0.5;
         this.useSpatialPartitioning = true;   // Enable by default for performance
         this.gridCellSize = 0.3;              // 1.2x ball diameter (ball radius = 0.25)
         this.useSleeping = true;              // Enable by default for performance
-        this.sleepVelocityThreshold = 0.1;    // Sleep when speed < 0.1
-        this.sleepFramesRequired = 60;        // Require 60 frames (~1 second) of rest
+        this.sleepVelocityThreshold = 0.5;    // Sleep when speed < 0.5 (relaxed for jitter tolerance)
+        this.sleepFramesRequired = 30;        // Require 30 frames (~0.5 second) of rest
+        this.velocityIterations = 1;          // Disabled for now (set to 1)
     }
 
     public Vector getGravity() {
@@ -143,5 +145,13 @@ public class PhysicsConfig {
 
     public void setSleepFramesRequired(int sleepFramesRequired) {
         this.sleepFramesRequired = sleepFramesRequired;
+    }
+
+    public int getVelocityIterations() {
+        return velocityIterations;
+    }
+
+    public void setVelocityIterations(int velocityIterations) {
+        this.velocityIterations = velocityIterations;
     }
 }

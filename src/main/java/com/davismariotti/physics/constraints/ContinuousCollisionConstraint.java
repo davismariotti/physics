@@ -57,8 +57,11 @@ public class ContinuousCollisionConstraint implements Constraint {
             );
 
             if (result.hasCollision()) {
-                // Wake the dynamic body if it's colliding with static
-                if (dynamic.isSleeping()) {
+                // Wake the dynamic body only if it has significant velocity
+                // This prevents sleeping bodies from waking due to tiny jitter on ground
+                double speed = Math.sqrt(dynamic.getVelocity().x() * dynamic.getVelocity().x() +
+                                        dynamic.getVelocity().y() * dynamic.getVelocity().y());
+                if (dynamic.isSleeping() && speed > 0.5) {
                     dynamic.wake();
                 }
 

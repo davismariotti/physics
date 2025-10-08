@@ -75,15 +75,29 @@ public class DynamicCollisionConstraint implements Constraint {
     }
 
     /**
-     * Apply dynamic collision detection to all body pairs
+     * Apply dynamic collision detection to all body pairs with velocity iterations
      * Should be called once per substep, not per body
+     *
+     * @param substepDelta time step for this substep
+     * @param velocityIterations number of iterations for convergence (reduces jitter in stacks)
+     */
+    public void applyAll(double substepDelta, int velocityIterations) {
+        // Iterate multiple times over all collisions for better convergence
+        // This is the Sequential Impulse approach - each iteration refines the solution
+        for (int iteration = 0; iteration < velocityIterations; iteration++) {
+            if (useSpatialPartitioning && spatialGrid != null) {
+                applyAllWithSpatialPartitioning(substepDelta);
+            } else {
+                applyAllNaive(substepDelta);
+            }
+        }
+    }
+
+    /**
+     * Legacy method for backward compatibility
      */
     public void applyAll(double substepDelta) {
-        if (useSpatialPartitioning && spatialGrid != null) {
-            applyAllWithSpatialPartitioning(substepDelta);
-        } else {
-            applyAllNaive(substepDelta);
-        }
+        applyAll(substepDelta, 1);
     }
 
     /**
@@ -157,20 +171,24 @@ public class DynamicCollisionConstraint implements Constraint {
         );
 
         if (result.hasCollision()) {
-            // Wake both bodies if either is sleeping
-            if (bodyA.isSleeping()) {
-                bodyA.wake();
-            }
-            if (bodyB.isSleeping()) {
-                bodyB.wake();
-            }
-
             // Check if velocities are separating - if so, skip resolution
             Vector velA = bodyA.getVelocity();
             Vector velB = bodyB.getVelocity();
             Vector relVel = new Vector(velB.x() - velA.x(), velB.y() - velA.y());
             Vector normal = result.normal();
             double velAlongNormal = relVel.x() * normal.x() + relVel.y() * normal.y();
+
+            // Wake sleeping bodies only if collision has significant relative velocity
+            // This prevents tiny jitter collisions from waking resting stacks
+            double relSpeed = Math.sqrt(relVel.x() * relVel.x() + relVel.y() * relVel.y());
+            if (relSpeed > 0.5) {  // Wake threshold: ignore very slow collisions
+                if (bodyA.isSleeping()) {
+                    bodyA.wake();
+                }
+                if (bodyB.isSleeping()) {
+                    bodyB.wake();
+                }
+            }
 
             // Only resolve if approaching (velAlongNormal < 0)
             if (velAlongNormal < 0) {

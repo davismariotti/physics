@@ -99,7 +99,7 @@ public class Game extends JFrame {
         renderer = new Renderer(windowWidth, windowHeight, simulator, interactionSystem);
 
         // Spawn initial batch of dynamic bodies for stress testing
-        spawnInitialBalls(config, groundHeight, 5000);
+        spawnInitialBalls(config, groundHeight, 2000);
 
         // Set up keyboard listener
         addKeyListener(new KeyListener() {

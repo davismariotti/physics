@@ -125,7 +125,8 @@ public class PhysicsSimulator {
 
             // Apply dynamic collision constraint (ball-to-ball collisions)
             // Called once per substep, not per body
-            dynamicCollisionConstraint.applyAll(substepDelta);
+            // Uses velocity iterations for better convergence in stacks
+            dynamicCollisionConstraint.applyAll(substepDelta, config.getVelocityIterations());
         }
 
         // Update sleep states after all physics (if sleeping enabled)
