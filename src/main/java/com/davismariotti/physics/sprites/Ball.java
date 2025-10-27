@@ -11,27 +11,43 @@ import java.awt.geom.Point2D;
 import java.util.List;
 
 public class Ball extends DynamicBody {
-    private static final double RADIUS = 0.25;
+    private static final double DEFAULT_RADIUS = 0.25;
+    private static final double DENSITY = 1.0;  // Density constant for all balls
+    private final double radius;
 
+    public Ball(Vector position, Vector vector, List<Vector> forces, MaterialProperties material, double radius) {
+        super(position, vector, forces, calculateMass(radius), material);
+        this.radius = radius;
+    }
+
+    private static double calculateMass(double radius) {
+        return 1.0;
+    }
+
+    // Constructor without radius (uses default)
     public Ball(Vector position, Vector vector, List<Vector> forces, MaterialProperties material) {
-        super(position, vector, forces, 1.0, material);
+        this(position, vector, forces, material, DEFAULT_RADIUS);
     }
 
     // Legacy constructor for backward compatibility
     public Ball(Vector position, Vector vector, List<Vector> forces, double coefficientOfRestitution, double dragCoefficient) {
-        this(position, vector, forces, new MaterialProperties(coefficientOfRestitution, dragCoefficient, 0.3, 0.2));
+        this(position, vector, forces, new MaterialProperties(coefficientOfRestitution, dragCoefficient, 0.3, 0.2), DEFAULT_RADIUS);
+    }
+
+    public double getRadius() {
+        return radius;
     }
 
     @Override
     public Collider getCollider() {
-        return new CircleCollider(this.getPosition(), RADIUS);
+        return new CircleCollider(this.getPosition(), radius);
     }
 
     @Override
     public void draw(Graphics2D graphics, Camera camera) {
         // Convert world coordinates to screen coordinates
         Camera.ScreenPointDouble screenPos = camera.worldToScreenDouble(this.getPosition());
-        double screenRadius = camera.worldToScreenDistance(RADIUS);
+        double screenRadius = camera.worldToScreenDistance(this.radius);
 
         // Center the circle on the position
         double x = screenPos.x() - screenRadius;
@@ -43,10 +59,10 @@ public class Ball extends DynamicBody {
 
         // Create radial gradient for shading
         Point2D center = new Point2D.Double(screenPos.x() - screenRadius * 0.3, screenPos.y() - screenRadius * 0.3);
-        float radius = (float) screenRadius;
+        float screenRadiusFloat = (float) screenRadius;
         float[] dist = {0.0f, 1.0f};
         Color[] colors = {new Color(255, 100, 100), new Color(200, 50, 50)};
-        RadialGradientPaint gradient = new RadialGradientPaint(center, radius, dist, colors);
+        RadialGradientPaint gradient = new RadialGradientPaint(center, screenRadiusFloat, dist, colors);
 
         graphics.setPaint(gradient);
         graphics.fill(ellipse);

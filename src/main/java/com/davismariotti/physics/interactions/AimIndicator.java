@@ -51,12 +51,15 @@ public class AimIndicator implements WorldInteraction {
     }
 
     private void spawnBall(InputContext context) {
+        // Random radius between 0.25 and 10
+        double radius = .2;
+
         Ball ball = new Ball(
                 ray.getEndPosition(), // Spawn at end of launcher, not at base
                 ray.getUnitVector().multiply(40),
                 Collections.singletonList(context.simulator().getConfig().getGravity()),
-                context.simulator().getConfig().getCoefficientOfRestitution(),
-                context.simulator().getConfig().getDragCoefficient()
+                context.simulator().getConfig().getDefaultMaterial(),
+                radius
         );
         context.simulator().addBody(ball);
     }

@@ -221,7 +221,8 @@ public class Game extends JFrame {
                 new Vector(x, y),
                 Vector.ZERO,
                 List.of(config.getGravity()),
-                config.getDefaultMaterial()
+                config.getDefaultMaterial(),
+                2.0
         );
         simulator.addBody(ball);
     }

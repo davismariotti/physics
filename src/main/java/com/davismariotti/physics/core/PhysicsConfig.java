@@ -25,7 +25,7 @@ public class PhysicsConfig {
         this.substeps = 6;
         this.restingVelocityThreshold = 0.5;
         this.useSpatialPartitioning = true;   // Enable by default for performance
-        this.gridCellSize = 0.3;              // 1.2x ball diameter (ball radius = 0.25)
+        this.gridCellSize = 0.5;             // 2x max ball diameter (max radius = 10)
         this.useSleeping = true;              // Enable by default for performance
         this.sleepVelocityThreshold = 0.5;    // Sleep when speed < 0.5 (relaxed for jitter tolerance)
         this.sleepFramesRequired = 30;        // Require 30 frames (~0.5 second) of rest
